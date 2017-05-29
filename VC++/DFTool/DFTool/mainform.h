@@ -1,5 +1,15 @@
 #pragma once
 
+#define STATE_MAIN 3
+#define STATE_FORT 0
+#define STATE_ADV 1
+#define STATE_START 0xFF
+#define STATE_DISCON 0xFF-1
+#define STATE_IDLE 0xFF-2
+
+#define SINGLE 1
+#define EMBARK 2
+
 namespace DFTool {
 
 	using namespace System;
@@ -34,6 +44,8 @@ namespace DFTool {
 				delete components;
 			}
 		}
+	private: System::Windows::Forms::OpenFileDialog^  openINI;
+	protected:
 
 	private:
 		/// <summary>
@@ -48,12 +60,21 @@ namespace DFTool {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->components = gcnew System::ComponentModel::Container();
-			this->Size = System::Drawing::Size(300,300);
-			this->Text = L"mainform";
-			this->Padding = System::Windows::Forms::Padding(0);
+			this->openINI = (gcnew System::Windows::Forms::OpenFileDialog());
+			this->SuspendLayout();
+			// 
+			// mainform
+			// 
+			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+			this->ClientSize = System::Drawing::Size(770, 441);
+			this->Name = L"mainform";
+			this->Text = L"mainform";
+			this->Load += gcnew System::EventHandler(this, &mainform::mainform_Load);
+			this->ResumeLayout(false);
+
 		}
 #pragma endregion
+	private: System::Void mainform_Load(System::Object^  sender, System::EventArgs^  e);
 	};
 }
