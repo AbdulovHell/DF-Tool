@@ -178,26 +178,6 @@ HANDLE get_process(void) {
 	return hProcess;
 }
 
-__int64 get_addr_by_name(char *name) {
-	char *pDest1, *pDest2;
-	try {
-		pDest1 = strstr(buf, name);
-		if (pDest1 == NULL)
-			throw Exception("parameter isn`t finded in settings.ini");
-		pDest2 = strpbrk(pDest1, "=");
-		if (pDest2 == NULL)
-			throw Exception("internal error 1");
-		__int64 addr = strtol(pDest2 + 1, NULL, 0);
-		if (addr == NULL)
-			throw Exception("internal error 2");
-		else
-			return addr;
-	}
-	catch (Exception &exception) {
-		Application->ShowException(&exception);
-		Application->~TApplication();
-	}
-}
 
 void patch_embark(void) {
 	if (EAW_ON) {

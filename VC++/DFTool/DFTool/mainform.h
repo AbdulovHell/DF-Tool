@@ -48,9 +48,21 @@ namespace DFTool {
 	protected:
 
 	private:
+		ref class MemoryLayout {
+		private:
+			size_t length;
+			char* buffer;
+			bool loaded = false;
+		public:
+			MemoryLayout(const char* Dest);
+			bool isLoaded();
+			uint64_t GetAddrByName(char* name);
+		};
+		void OpenDF();
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
+		MemoryLayout^ ml;
 		System::ComponentModel::Container ^components;
 
 #pragma region Windows Form Designer generated code
