@@ -44,10 +44,9 @@ void DFTool::mainform::OpenDF()
 								//TODO: Fix it for 64bit
 								uint64_t PauseOffset = ml->GetAddrByName("pause");
 								PauseStateAddr = DFStartAddr + PauseOffset;
-								///season = StartAddr + get_addr_by_name("season");
-								///season_tick = StartAddr + get_addr_by_name("season_tick");
-								///plus = get_addr_by_name("state");
-								///state_addr = StartAddr + plus;
+								SeasonAddr = DFStartAddr + ml->GetAddrByName("season");
+								SeasonTickAddr = DFStartAddr + ml->GetAddrByName("season_tick");
+								StateAddr = DFStartAddr + ml->GetAddrByName("state");
 
 								///for (int i = 0; i < 11; i++)
 								///	Debug_func[i] = StartAddr + get_addr_by_name("debug") + i;
@@ -84,17 +83,17 @@ void DFTool::mainform::OpenDF()
 								return;
 							}
 							//else
-							//	ErrorExit(TEXT("GetModuleInformation"));
+							//	throw gcnew Exception("GetModuleInformation");
 						}
 					}
 					//else
-					//	ErrorExit(TEXT("GetModuleBaseName"));
+					//	throw gcnew Exception("GetModuleBaseName");
 				}
 				//else
-				//	ErrorExit(TEXT("EnumProcessModulesEx"));
+				//	throw gcnew Exception("EnumProcessModulesEx");
 			}
 			//else
-			//	ErrorExit(TEXT("OpenProcess"));
+			//	throw gcnew Exception("OpenProcess");
 			CloseHandle(hProcess);
 		}
 		throw gcnew Exception("Dwarf Fortress.exe isn`t finded");

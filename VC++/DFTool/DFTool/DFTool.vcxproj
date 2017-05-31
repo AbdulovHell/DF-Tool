@@ -135,9 +135,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DwarfEditor.cpp" />
     <ClCompile Include="mainform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DwarfEditor.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="mainform.h">
       <FileType>CppForm</FileType>
     </ClInclude>

@@ -18,9 +18,15 @@
     <ClCompile Include="mainform.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
+    <ClCompile Include="DwarfEditor.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainform.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="DwarfEditor.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>

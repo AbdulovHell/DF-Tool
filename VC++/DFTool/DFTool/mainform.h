@@ -84,6 +84,9 @@ namespace DFTool {
 		uint64_t DFStartAddr;
 		uint64_t TimeWarpMultAddr;
 		uint64_t PauseStateAddr;
+		uint64_t SeasonAddr;
+		uint64_t SeasonTickAddr;
+		uint64_t StateAddr;
 		System::ComponentModel::Container ^components;
 
 #pragma region Windows Form Designer generated code
@@ -110,7 +113,7 @@ namespace DFTool {
 			// 
 			this->CnctBtn->Location = System::Drawing::Point(12, 12);
 			this->CnctBtn->Name = L"CnctBtn";
-			this->CnctBtn->Size = System::Drawing::Size(75, 35);
+			this->CnctBtn->Size = System::Drawing::Size(75, 49);
 			this->CnctBtn->TabIndex = 0;
 			this->CnctBtn->Text = L"Connect";
 			this->CnctBtn->UseVisualStyleBackColor = true;
@@ -120,10 +123,10 @@ namespace DFTool {
 			// 
 			this->tabControl1->Controls->Add(this->tabPage1);
 			this->tabControl1->Controls->Add(this->tabPage2);
-			this->tabControl1->Location = System::Drawing::Point(21, 107);
+			this->tabControl1->Location = System::Drawing::Point(12, 67);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(483, 267);
+			this->tabControl1->Size = System::Drawing::Size(500, 294);
 			this->tabControl1->TabIndex = 1;
 			// 
 			// tabPage1
@@ -131,7 +134,7 @@ namespace DFTool {
 			this->tabPage1->Location = System::Drawing::Point(4, 22);
 			this->tabPage1->Name = L"tabPage1";
 			this->tabPage1->Padding = System::Windows::Forms::Padding(3);
-			this->tabPage1->Size = System::Drawing::Size(475, 241);
+			this->tabPage1->Size = System::Drawing::Size(492, 268);
 			this->tabPage1->TabIndex = 0;
 			this->tabPage1->Text = L"tabPage1";
 			this->tabPage1->UseVisualStyleBackColor = true;
@@ -181,7 +184,7 @@ namespace DFTool {
 			this->TimeWarpControls->Controls->Add(this->TimeWarpEnBtn);
 			this->TimeWarpControls->Controls->Add(this->TimeWarpSetMultBtn);
 			this->TimeWarpControls->Controls->Add(this->TimeWarpMultEd);
-			this->TimeWarpControls->Location = System::Drawing::Point(166, 12);
+			this->TimeWarpControls->Location = System::Drawing::Point(93, 12);
 			this->TimeWarpControls->Name = L"TimeWarpControls";
 			this->TimeWarpControls->Size = System::Drawing::Size(243, 49);
 			this->TimeWarpControls->TabIndex = 5;
