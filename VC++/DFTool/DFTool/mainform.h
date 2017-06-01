@@ -1,12 +1,5 @@
 #pragma once
 
-#define STATE_MAIN 3
-#define STATE_FORT 0
-#define STATE_ADV 1
-#define STATE_START 0xFF
-#define STATE_DISCON 0xFF-1
-#define STATE_IDLE 0xFF-2
-
 #define SINGLE 1
 #define EMBARK 2
 
@@ -57,11 +50,12 @@ namespace DFTool {
 
 
 	private: System::Windows::Forms::GroupBox^  TimeWarpControls;
+	private: System::Windows::Forms::Button^  button1;
 
 	private: System::Windows::Forms::OpenFileDialog^  openINI;
 	protected:
 
-	private:
+	public:
 		ref class MemoryLayout {
 		private:
 			size_t length;
@@ -72,16 +66,47 @@ namespace DFTool {
 			bool isLoaded();
 			uint64_t GetAddrByName(char* name);
 		};
+
+		static HANDLE GetDFHandle() {
+			return hDF;
+		}
+		static HWND GetDFHwnd() {
+			return hDFWnd;
+		}
+		static uint64_t GetDFStartAddr() {
+			return DFStartAddr;
+		}
+		static MemoryLayout^ GetMemLayout() {
+			return ml;
+		}
+		static uint32_t GetDwarfCount() {
+			uint32_t dwarfs = 7;
+			//uint64_t StartDwarfCountAddr = DFStartAddr + ml->GetAddrByName("start_dwarf");
+			//ReadProcessMemory(hDF, (void*)StartDwarfCountAddr, &dwarfs, 4, NULL);
+			return dwarfs;
+		}
+		static void GetFullName(char *buf, int i, uint64_t vect);
+	private:
+		enum class ProgState : uint8_t {
+			STATE_MAIN = 3,
+			STATE_FORT = 0,
+			STATE_ADV = 1,
+			STATE_START = 0xFF,
+			STATE_DISCON = 0xFF - 1,
+			STATE_IDLE = 0xFF - 2
+		};
+		static char* fix_name(char* name);
 		void OpenDF();
 		void InitTimeWarp();
 		void EnableTimeWarp();
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
-		MemoryLayout^ ml;
-		HANDLE hDF;
-		HWND hDFWnd;
-		uint64_t DFStartAddr;
+		ProgState progSt;
+		static MemoryLayout^ ml;
+		static HANDLE hDF;
+		static HWND hDFWnd;
+		static uint64_t DFStartAddr;
 		uint64_t TimeWarpMultAddr;
 		uint64_t PauseStateAddr;
 		uint64_t SeasonAddr;
@@ -105,7 +130,9 @@ namespace DFTool {
 			this->TimeWarpSetMultBtn = (gcnew System::Windows::Forms::Button());
 			this->TimeWarpMultEd = (gcnew System::Windows::Forms::TextBox());
 			this->TimeWarpControls = (gcnew System::Windows::Forms::GroupBox());
+			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->tabControl1->SuspendLayout();
+			this->tabPage1->SuspendLayout();
 			this->TimeWarpControls->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -131,6 +158,7 @@ namespace DFTool {
 			// 
 			// tabPage1
 			// 
+			this->tabPage1->Controls->Add(this->button1);
 			this->tabPage1->Location = System::Drawing::Point(4, 22);
 			this->tabPage1->Name = L"tabPage1";
 			this->tabPage1->Padding = System::Windows::Forms::Padding(3);
@@ -144,7 +172,7 @@ namespace DFTool {
 			this->tabPage2->Location = System::Drawing::Point(4, 22);
 			this->tabPage2->Name = L"tabPage2";
 			this->tabPage2->Padding = System::Windows::Forms::Padding(3);
-			this->tabPage2->Size = System::Drawing::Size(475, 241);
+			this->tabPage2->Size = System::Drawing::Size(492, 268);
 			this->tabPage2->TabIndex = 1;
 			this->tabPage2->Text = L"tabPage2";
 			this->tabPage2->UseVisualStyleBackColor = true;
@@ -191,6 +219,16 @@ namespace DFTool {
 			this->TimeWarpControls->TabStop = false;
 			this->TimeWarpControls->Text = L"Time warp";
 			// 
+			// button1
+			// 
+			this->button1->Location = System::Drawing::Point(125, 111);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(230, 50);
+			this->button1->TabIndex = 0;
+			this->button1->Text = L"Dwarfs editor";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &mainform::button1_Click);
+			// 
 			// mainform
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -203,6 +241,7 @@ namespace DFTool {
 			this->Text = L"DFTool";
 			this->Load += gcnew System::EventHandler(this, &mainform::mainform_Load);
 			this->tabControl1->ResumeLayout(false);
+			this->tabPage1->ResumeLayout(false);
 			this->TimeWarpControls->ResumeLayout(false);
 			this->TimeWarpControls->PerformLayout();
 			this->ResumeLayout(false);
@@ -213,5 +252,6 @@ namespace DFTool {
 	private: System::Void TimeWarpSetMultBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void TimeWarpEnBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void CnctBtn_Click(System::Object^  sender, System::EventArgs^  e);
-	};
+	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e);
+};
 }

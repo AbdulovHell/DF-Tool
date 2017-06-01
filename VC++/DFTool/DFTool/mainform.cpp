@@ -1,6 +1,8 @@
-﻿#include <fstream>
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include <fstream>
 #include <Windows.h>
 #include <Psapi.h>
+#include "DwarfEditor.h"
 #include "mainform.h"
 
 using namespace System;
@@ -12,6 +14,101 @@ void Main(array<String^>^ args) {
 	Application::SetCompatibleTextRenderingDefault(false);
 	DFTool::mainform form;
 	Application::Run(%form);
+}
+
+void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
+{
+	uint64_t NameOffset = vect;
+	uint64_t ColNameOffset = DFStartAddr + ml->GetAddrByName("names");
+	HANDLE hProcess = hDF;
+	// char buf[100];
+	// strcpy(buf,"");
+
+	uint64_t fnameaddr;
+	char firstname[28];
+	ReadProcessMemory(hProcess, (void*)NameOffset, &fnameaddr, 8, NULL);
+	fnameaddr += i * 8;
+	ReadProcessMemory(hProcess, (void*)fnameaddr, &fnameaddr, 8, NULL);
+	UCHAR mode = 0;
+	ReadProcessMemory(hProcess, (void*)(fnameaddr + 0x14), &mode, 1, NULL);
+	if (mode == 0x1F) {
+		ReadProcessMemory(hProcess, (void*)fnameaddr, &fnameaddr, 8, NULL);
+		ReadProcessMemory(hProcess, (void*)fnameaddr, firstname, 28, NULL);
+		firstname[0] = toupper(firstname[0]);
+		strcat(buf, firstname);
+		// Edit2->Text=firstname;
+	}
+	else {
+		ReadProcessMemory(hProcess, (void*)fnameaddr, firstname, 28, NULL);
+		firstname[0] = toupper(firstname[0]);
+		strcat(buf, firstname);
+		// Edit2->Text=firstname;
+	}
+	//
+	strcat(buf, " ");
+	//
+	__int64 l1nameaddr;
+	int l1nameind, l2nameind;
+	char l1name[10], l2name[10];
+	// получение индексов имен, первой части
+	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
+	l1nameaddr += i * 8;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	l1nameaddr += 0x40;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameind, 4, NULL);
+	// второй
+	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
+	l1nameaddr += i * 8;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	l1nameaddr += 0x44;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l2nameind, 4, NULL);
+	//
+	ReadProcessMemory(hProcess, (void*)ColNameOffset, &l1nameaddr, 8, NULL);
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	l1nameaddr += 0x50;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	l1nameaddr += (l1nameind + 1) * 8 - 8;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, l1name, 10, NULL);
+
+	l1name[0] = toupper(l1name[0]);
+
+	strcat(buf, l1name);
+
+	ReadProcessMemory(hProcess, (void*)ColNameOffset, &l1nameaddr, 8, NULL);
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	l1nameaddr += 0x50;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	l1nameaddr += (l2nameind + 1) * 8 - 8;
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
+	ReadProcessMemory(hProcess, (void*)l1nameaddr, l2name, 10, NULL);
+
+	strcat(buf, l2name);
+
+	fix_name(buf);
+}
+
+char * DFTool::mainform::fix_name(char * name)
+{
+	uint64_t len = strlen(name);
+	for (uint64_t i = 0; i < len; i++) {
+		if (name[i] == 0xFFFFFF8C || name[i] == 0xFFFFFF8B ||
+			name[i] == 0xFFFFFFA1)
+			name[i] = 'i';
+		if (name[i] == 0xFFFFFFA0 || name[i] == 0xFFFFFF86 ||
+			name[i] == 0xFFFFFF83 || name[i] == 0xFFFFFF84)
+			name[i] = 'a';
+		if (name[i] == 0xFFFFFF89 || name[i] == 0xFFFFFF8A ||
+			name[i] == 0xFFFFFF82 || name[i] == 0xFFFFFF88)
+			name[i] = 'e';
+		if (name[i] == 0xFFFFFF97 || name[i] == 0xFFFFFF96 ||
+			name[i] == 0xFFFFFFA3)
+			name[i] = 'u';
+		if (name[i] == 0xFFFFFFA2 || name[i] == 0xFFFFFF93 ||
+			name[i] == 0xFFFFFF94 || name[i] == 0xFFFFFF95)
+			name[i] = 'o';
+	}
+	return name;
 }
 
 void DFTool::mainform::OpenDF()
@@ -55,29 +152,11 @@ void DFTool::mainform::OpenDF()
 								//	EAW_ON = true;
 								//CheckBox1->Checked = EAW_ON;
 								//Edit1->Text = IntToStr(Init_StartDwarf());
-								///state = STATE_START;
+								progSt = ProgState::STATE_START;
 								InitTimeWarp();
-								//read_d_init();
-								/*block_addr =
-								(__int64)StartAddr + get_addr_by_name
-								("main_blck");
-								ReadProcessMemory(hProcess, (void*)block_addr,
-								old, 6, NULL);
-								__int64 con3_addr, con4_addr;
-								if (get_addr_by_name("main_condition")
-								== 0x3BA4F3) {
-								con3_addr =
-								(__int64)StartAddr + get_addr_by_name
-								("con3");
-								con4_addr =
-								(__int64)StartAddr + get_addr_by_name
-								("con4");
-
-								ReadProcessMemory(hProcess,
-								(void*)con3_addr, con3_old, 6, NULL);
-								ReadProcessMemory(hProcess,
-								(void*)con4_addr, con4_old, 6, NULL);
-								}
+								/*block_addr =(__int64)StartAddr + get_addr_by_name("main_blck");
+								ReadProcessMemory(hProcess, (void*)block_addr,old, 6, NULL);
+								
 								Init_moodAcc();     */
 								///Timer1->Enabled = true;
 								return;
@@ -183,6 +262,12 @@ System::Void DFTool::mainform::TimeWarpEnBtn_Click(System::Object ^ sender, Syst
 System::Void DFTool::mainform::CnctBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	OpenDF();
+}
+
+System::Void DFTool::mainform::button1_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	DwarfEditor^ dfEd = gcnew DwarfEditor(EMBARK);
+	dfEd->Show();
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)
