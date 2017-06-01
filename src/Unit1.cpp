@@ -1139,7 +1139,7 @@ void __fastcall TForm1::Exit1Click(TObject *Sender) {
 // ---------------------------------------------------------------------------
 
 void __fastcall TForm1::PrintSetup1Click(TObject *Sender) {
-	adv_first = true;        //TODO:REWORK!
+	adv_first = true;        //TODO: wtf?
 
 	/*int count = 0;
 	__int64 tempAddr;
@@ -1163,11 +1163,6 @@ void __fastcall TForm1::ForumThread1Click(TObject *Sender) {
 }
 // ---------------------------------------------------------------------------
 
-void __fastcall TForm1::Donate1Click(TObject *Sender) {
-	AnsiString site =
-		"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TY2YMFJQEJXWG";
-	ShellExecute(NULL, "open", site.c_str(), NULL, NULL, SW_RESTORE);
-}
 // ---------------------------------------------------------------------------
 
 void __fastcall TForm1::Button30Click(TObject *Sender) {
@@ -1207,70 +1202,6 @@ void __fastcall TForm1::DecimalRepeatTimer(TObject *Sender) {
 	// Sleep(1);
 }
 // ---------------------------------------------------------------------------
-
-void __fastcall TForm1::Change_d_init(TObject *Sender) {
-	if (!init_d_init)
-		return;
-	__int64 tempAddr = (__int64)StartAddr + get_addr_by_name("d_init");
-	// +0x30 +0x31
-	ReadProcessMemory(hProcess, (void*)tempAddr, &tempAddr, 4, NULL);
-	char p1, p2;
-	ReadProcessMemory(hProcess, (void*)(tempAddr + 0x30), &p1, 1, NULL);
-	ReadProcessMemory(hProcess, (void*)(tempAddr + 0x31), &p2, 1, NULL);
-
-	char p1buf[] = {0, 0, 0, 0, 0, 0, 0, 0};
-
-	for (int i = 0, k = 7; i < 8; i++, k--) {
-		p1buf[k] = (p1 & (int)pow((double)2, i)) ? 49 : 48;
-		p1 << 1;
-	}
-
-	p1buf[0] = (int)Form1->CheckBox12->Checked + 48;
-	p1buf[1] = (int)Form1->CheckBox13->Checked + 48;
-
-	p1buf[4] = (int)Form1->CheckBox17->Checked + 48;
-	p1buf[5] = (int)Form1->CheckBox18->Checked + 48;
-	p1buf[6] = (int)Form1->CheckBox19->Checked + 48;
-	p1buf[7] = (int)Form1->CheckBox20->Checked + 48;
-
-	switch (Form1->ComboBox3->ItemIndex) {
-	case 0:
-		p1buf[2] = 0 + 48;
-		p1buf[3] = 0 + 48;
-		break;
-	case 1:
-		p1buf[2] = 0 + 48;
-		p1buf[3] = 1 + 48;
-		break;
-	case 2:
-		p1buf[2] = 1 + 48;
-		p1buf[3] = 0 + 48;
-		break;
-	default:
-		break;
-	}
-
-	p1 = strtol(p1buf, NULL, 2);
-
-	char p2buf[] = {0, 0, 0, 0, 0, 0, 0, 0};
-
-	for (int i = 0, k = 7; i < 8; i++, k--) {
-		p2buf[k] = (p2 & (int)pow((double)2, i)) ? 49 : 48;
-		p2 << 1;
-	}
-
-	p2buf[2] = (int)Form1->CheckBox14->Checked + 48;
-	p2buf[3] = (int)Form1->CheckBox15->Checked + 48;
-	p2buf[4] = (int)Form1->CheckBox21->Checked + 48;
-	p2buf[5] = (int)Form1->CheckBox22->Checked + 48;
-	p2buf[6] = (int)Form1->CheckBox23->Checked + 48;
-	p2buf[7] = (int)Form1->CheckBox16->Checked + 48;
-
-	p2 = strtol(p2buf, NULL, 2);
-
-	WriteProcessMemory(hProcess, (void*)(tempAddr + 0x30), &p1, 1, NULL);
-	WriteProcessMemory(hProcess, (void*)(tempAddr + 0x31), &p2, 1, NULL);
-}
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::Act_DeAct_mood_acc(TObject *Sender) {
@@ -1381,28 +1312,7 @@ void __fastcall TForm1::Slaught_creature(TObject *Sender) {
 }
 // ---------------------------------------------------------------------------
 
-void __fastcall TForm1::FormCreate(TObject *Sender) {
-	try {
-		if (OpenDialog1->Execute()) {
-			wchar_t name[MAX_PATH];
-			ZeroMemory(name, MAX_PATH);
-			wcscpy(name, OpenDialog1->FileName.c_str());
-			ini_file = _wfopen(name, L"r");
-			if (ini_file == NULL)
-				throw Exception("settings.ini isn`t opened");
-			int a = fread(buf, sizeof(char), 1000 - 5, ini_file);
-			if (a == 0)
-				throw Exception("settings.ini error reading");
-			fclose(ini_file);
-			ini_loaded = true;
-		}
-	}
-	catch (Exception &exception) {
-		fclose(ini_file);
-		Application->ShowException(&exception);
-		Application->~TApplication();
-	}
-}
+
 // ---------------------------------------------------------------------------
 
 void __fastcall TForm1::Cancel_job(TObject *Sender) {
@@ -1425,27 +1335,6 @@ void __fastcall TForm1::Cancel_job(TObject *Sender) {
 }
 // ---------------------------------------------------------------------------
 
-void __fastcall TForm1::Loadini1Click(TObject *Sender) {
-	try {
-		if (OpenDialog1->Execute()) {
-			wchar_t name[MAX_PATH];
-			ZeroMemory(name, MAX_PATH);
-			wcscpy(name, OpenDialog1->FileName.c_str());
-			ini_file = _wfopen(name, L"r");
-			if (ini_file == NULL)
-				throw Exception("settings.ini isn`t opened");
-			int a = fread(buf, sizeof(char), 1000 - 5, ini_file);
-			if (a == 0)
-				throw Exception("settings.ini error reading");
-			fclose(ini_file);
-			ini_loaded = true;
-		}
-	}
-	catch (Exception &exception) {
-		fclose(ini_file);
-		Application->ShowException(&exception);
-	}
-}
 // ---------------------------------------------------------------------------
 
 void __fastcall TForm1::Button35Click(TObject *Sender) { // heal unit
@@ -1460,12 +1349,7 @@ void __fastcall TForm1::Button35Click(TObject *Sender) { // heal unit
 }
 // ---------------------------------------------------------------------------
 
-void __fastcall TForm1::Button36Click(TObject *Sender) {
-	TForm *Dialog = get_dwarfedit_pointer();
-	change_mode(EMBARK);
-	Dialog->Visible = Dialog->Visible ? false : true;
-}
-// ---------------------------------------------------------------------------
+//---------------------------------------------------------------------
 
 void __fastcall TForm1::Button3Click(TObject *Sender) {
 	TForm *Form = get_dwarfedit_pointer();

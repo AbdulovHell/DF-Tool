@@ -122,9 +122,9 @@ void DFTool::mainform::OpenDF()
 		DWORD dummy;
 		HMODULE hModule;
 		wchar_t szProcessName[MAX_PATH] = TEXT("<unknown>");
-		
+
 		EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded);
-		cProcesses = cbNeeded/sizeof(DWORD);
+		cProcesses = cbNeeded / sizeof(DWORD);
 		if (cProcesses <= 0)
 			throw gcnew Exception("Error EnumProcesses");
 		for (DWORD i = 0; i < cProcesses; i++) {
@@ -134,7 +134,7 @@ void DFTool::mainform::OpenDF()
 					if (GetModuleBaseName(hProcess, hModule, szProcessName, sizeof(szProcessName) / sizeof(TCHAR))) {
 						String^ str = gcnew String(szProcessName);
 						if (("Dwarf Fortress.exe" == str) || ("Dwarf Fortress Rus.exe" == str)) {
-							if (GetModuleInformation(hProcess, hModule, &modinfo,	sizeof(MODULEINFO))) {
+							if (GetModuleInformation(hProcess, hModule, &modinfo, sizeof(MODULEINFO))) {
 								DFStartAddr = (uint64_t)modinfo.lpBaseOfDll;
 								hDF = hProcess;
 								hDFWnd = FindWindow(L"SDL_app", L"Dwarf Fortress");
@@ -156,7 +156,7 @@ void DFTool::mainform::OpenDF()
 								InitTimeWarp();
 								/*block_addr =(__int64)StartAddr + get_addr_by_name("main_blck");
 								ReadProcessMemory(hProcess, (void*)block_addr,old, 6, NULL);
-								
+
 								Init_moodAcc();     */
 								///Timer1->Enabled = true;
 								return;
@@ -210,7 +210,7 @@ void DFTool::mainform::EnableTimeWarp()
 		WriteProcessMemory(hDF, (void*)PauseStateAddr, &PauseState, 1, NULL);
 	}
 	//
-	void *ExtCode = VirtualAllocEx(hDF, NULL, 64, MEM_COMMIT | MEM_RESERVE,	PAGE_EXECUTE_READWRITE);
+	void *ExtCode = VirtualAllocEx(hDF, NULL, 64, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	uint64_t Inject_point = DFStartAddr + ml->GetAddrByName("inject_point");
 	// меняем исходный код
 	char modsrc[13] = { 0x48,0xB9,0,0,0,0,0,0,0,0,0xFF,0xE1,0x90 };
@@ -268,6 +268,83 @@ System::Void DFTool::mainform::button1_Click(System::Object ^ sender, System::Ev
 {
 	DwarfEditor^ dfEd = gcnew DwarfEditor(EMBARK);
 	dfEd->Show();
+}
+
+System::Void DFTool::mainform::SetEmbarkPtBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	Int32 count = -1;
+
+	if (!Int32::TryParse(textBox1->Text, count)) {
+		//TODO: мб как-то обработать
+		return;
+	}
+
+	if ((count >= 0) && (count < 2147483646)) {
+		uint64_t tempAddr;
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+		ReadProcessMemory(hDF, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x8;
+		ReadProcessMemory(hDF, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0xEC4;
+		WriteProcessMemory(hDF, (void*)addr, &count, 4, NULL);
+	}
+}
+
+System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (progSt != ProgState::STATE_START) {
+		int temp;
+		if (!ReadProcessMemory(hDF, (void*)StateAddr, &temp, 4, NULL)) {
+			progSt = ProgState::STATE_DISCON;
+			//ErrorExit(TEXT("ReadProcessMemory"));
+		}else{
+			progSt = (ProgState)temp;
+		}
+	}
+	switch (progSt) {
+	case ProgState::STATE_MAIN:
+
+		break;
+	case ProgState::STATE_FORT:
+
+		Update_selected_unit_wnd();
+
+		break;
+	case ProgState::STATE_ADV:
+
+
+		if (adv_first) {
+			AttPoints(NULL, false);
+			SkillPoints(NULL, false);
+			short race = NULL;
+			__int64 addrR = StartAddr + get_addr_by_name("main");
+			ReadProcessMemory(hProcess, (void*)addrR, &addrR, 8, NULL);
+			addrR += 0xB8;
+			ReadProcessMemory(hProcess, (void*)addrR, &race, 2, NULL);
+			Edit7->Text = IntToStr(race);
+			adv_first = false;
+		}
+
+		update_coords(false, NULL, NULL, NULL);
+
+		if (MaxSpeed)
+			update_speed();
+
+		break;
+	case ProgState::STATE_START:
+		Button10->Enabled = !timewarpON;
+		Button32->Enabled = true;
+		PrintSetup1->Enabled = true;
+		Button1->Enabled = false;
+		progSt = ProgState::STATE_IDLE;
+
+		break;
+	case ProgState::STATE_DISCON:
+
+		break;
+	default:
+		break;
+	}
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)
