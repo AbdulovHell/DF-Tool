@@ -67,6 +67,13 @@ namespace DFTool {
 	private: System::Windows::Forms::TextBox^  StartDwarfEd;
 	private: System::Windows::Forms::Button^  SetStartDwarfBtn;
 	private: System::Windows::Forms::Label^  label2;
+	private: System::Windows::Forms::GroupBox^  groupBox2;
+	private: System::Windows::Forms::Label^  SelCreatureName;
+	private: System::Windows::Forms::CheckBox^  SlaughtFlag;
+	private: System::Windows::Forms::Button^  EditCreatureBtn;
+	private: System::Windows::Forms::Button^  CancelJobBtn;
+	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Button^  button1;
 
 	private: System::Windows::Forms::OpenFileDialog^  openINI;
 	public:
@@ -115,6 +122,7 @@ namespace DFTool {
 		void EnableTimeWarp();
 		void InitDebugFunction();
 		int InitStartDwarf();
+		void UpdateSelectedUnitInfo();
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
@@ -150,6 +158,11 @@ namespace DFTool {
 				 this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 				 this->OpenDwarfEditorBtn = (gcnew System::Windows::Forms::Button());
 				 this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
+				 this->groupBox2 = (gcnew System::Windows::Forms::GroupBox());
+				 this->CancelJobBtn = (gcnew System::Windows::Forms::Button());
+				 this->EditCreatureBtn = (gcnew System::Windows::Forms::Button());
+				 this->SlaughtFlag = (gcnew System::Windows::Forms::CheckBox());
+				 this->SelCreatureName = (gcnew System::Windows::Forms::Label());
 				 this->DebugFeatures = (gcnew System::Windows::Forms::CheckedListBox());
 				 this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 				 this->SetEndSeasonBtn = (gcnew System::Windows::Forms::Button());
@@ -170,9 +183,12 @@ namespace DFTool {
 				 this->StartDwarfEd = (gcnew System::Windows::Forms::TextBox());
 				 this->SetStartDwarfBtn = (gcnew System::Windows::Forms::Button());
 				 this->label2 = (gcnew System::Windows::Forms::Label());
+				 this->button1 = (gcnew System::Windows::Forms::Button());
+				 this->button2 = (gcnew System::Windows::Forms::Button());
 				 this->tabControl1->SuspendLayout();
 				 this->tabPage1->SuspendLayout();
 				 this->tabPage2->SuspendLayout();
+				 this->groupBox2->SuspendLayout();
 				 this->groupBox1->SuspendLayout();
 				 this->TimeWarpControls->SuspendLayout();
 				 this->SuspendLayout();
@@ -251,6 +267,7 @@ namespace DFTool {
 				 // 
 				 // tabPage2
 				 // 
+				 this->tabPage2->Controls->Add(this->groupBox2);
 				 this->tabPage2->Controls->Add(this->DebugFeatures);
 				 this->tabPage2->Controls->Add(this->groupBox1);
 				 this->tabPage2->Location = System::Drawing::Point(4, 22);
@@ -260,6 +277,61 @@ namespace DFTool {
 				 this->tabPage2->TabIndex = 1;
 				 this->tabPage2->Text = L"Fortress";
 				 this->tabPage2->UseVisualStyleBackColor = true;
+				 // 
+				 // groupBox2
+				 // 
+				 this->groupBox2->Controls->Add(this->button2);
+				 this->groupBox2->Controls->Add(this->button1);
+				 this->groupBox2->Controls->Add(this->CancelJobBtn);
+				 this->groupBox2->Controls->Add(this->EditCreatureBtn);
+				 this->groupBox2->Controls->Add(this->SlaughtFlag);
+				 this->groupBox2->Controls->Add(this->SelCreatureName);
+				 this->groupBox2->Location = System::Drawing::Point(6, 148);
+				 this->groupBox2->Name = L"groupBox2";
+				 this->groupBox2->Size = System::Drawing::Size(304, 124);
+				 this->groupBox2->TabIndex = 2;
+				 this->groupBox2->TabStop = false;
+				 this->groupBox2->Text = L"Selected creature in \'v\' mode";
+				 // 
+				 // CancelJobBtn
+				 // 
+				 this->CancelJobBtn->Location = System::Drawing::Point(9, 95);
+				 this->CancelJobBtn->Name = L"CancelJobBtn";
+				 this->CancelJobBtn->Size = System::Drawing::Size(75, 23);
+				 this->CancelJobBtn->TabIndex = 3;
+				 this->CancelJobBtn->Text = L"Cancel Job";
+				 this->CancelJobBtn->UseVisualStyleBackColor = true;
+				 this->CancelJobBtn->Click += gcnew System::EventHandler(this, &mainform::CancelJobBtn_Click);
+				 // 
+				 // EditCreatureBtn
+				 // 
+				 this->EditCreatureBtn->Location = System::Drawing::Point(9, 68);
+				 this->EditCreatureBtn->Name = L"EditCreatureBtn";
+				 this->EditCreatureBtn->Size = System::Drawing::Size(75, 23);
+				 this->EditCreatureBtn->TabIndex = 2;
+				 this->EditCreatureBtn->Text = L"Edit";
+				 this->EditCreatureBtn->UseVisualStyleBackColor = true;
+				 this->EditCreatureBtn->Click += gcnew System::EventHandler(this, &mainform::EditCreatureBtn_Click);
+				 // 
+				 // SlaughtFlag
+				 // 
+				 this->SlaughtFlag->AutoSize = true;
+				 this->SlaughtFlag->Location = System::Drawing::Point(9, 45);
+				 this->SlaughtFlag->Name = L"SlaughtFlag";
+				 this->SlaughtFlag->Size = System::Drawing::Size(62, 17);
+				 this->SlaughtFlag->TabIndex = 1;
+				 this->SlaughtFlag->Text = L"Slaught";
+				 this->SlaughtFlag->UseVisualStyleBackColor = true;
+				 this->SlaughtFlag->CheckedChanged += gcnew System::EventHandler(this, &mainform::SlaughtFlag_CheckedChanged);
+				 // 
+				 // SelCreatureName
+				 // 
+				 this->SelCreatureName->AutoSize = true;
+				 this->SelCreatureName->Location = System::Drawing::Point(6, 29);
+				 this->SelCreatureName->Name = L"SelCreatureName";
+				 this->SelCreatureName->Size = System::Drawing::Size(75, 13);
+				 this->SelCreatureName->TabIndex = 0;
+				 this->SelCreatureName->Text = L"CreatureName";
 				 // 
 				 // DebugFeatures
 				 // 
@@ -414,9 +486,9 @@ namespace DFTool {
 				 this->TimeWarpControls->Controls->Add(this->TimeWarpEnBtn);
 				 this->TimeWarpControls->Controls->Add(this->TimeWarpSetMultBtn);
 				 this->TimeWarpControls->Controls->Add(this->TimeWarpMultEd);
-				 this->TimeWarpControls->Location = System::Drawing::Point(16, 67);
+				 this->TimeWarpControls->Location = System::Drawing::Point(12, 67);
 				 this->TimeWarpControls->Name = L"TimeWarpControls";
-				 this->TimeWarpControls->Size = System::Drawing::Size(315, 49);
+				 this->TimeWarpControls->Size = System::Drawing::Size(324, 49);
 				 this->TimeWarpControls->TabIndex = 5;
 				 this->TimeWarpControls->TabStop = false;
 				 this->TimeWarpControls->Text = L"Time warp";
@@ -445,7 +517,7 @@ namespace DFTool {
 				 // 
 				 this->SetStartDwarfBtn->Location = System::Drawing::Point(293, 13);
 				 this->SetStartDwarfBtn->Name = L"SetStartDwarfBtn";
-				 this->SetStartDwarfBtn->Size = System::Drawing::Size(39, 21);
+				 this->SetStartDwarfBtn->Size = System::Drawing::Size(43, 21);
 				 this->SetStartDwarfBtn->TabIndex = 8;
 				 this->SetStartDwarfBtn->Text = L"Set";
 				 this->SetStartDwarfBtn->UseVisualStyleBackColor = true;
@@ -459,6 +531,24 @@ namespace DFTool {
 				 this->label2->Size = System::Drawing::Size(90, 13);
 				 this->label2->TabIndex = 9;
 				 this->label2->Text = L"Start Dwarf count";
+				 // 
+				 // button1
+				 // 
+				 this->button1->Location = System::Drawing::Point(158, 39);
+				 this->button1->Name = L"button1";
+				 this->button1->Size = System::Drawing::Size(75, 23);
+				 this->button1->TabIndex = 4;
+				 this->button1->Text = L"Heal unit";
+				 this->button1->UseVisualStyleBackColor = true;
+				 // 
+				 // button2
+				 // 
+				 this->button2->Location = System::Drawing::Point(158, 68);
+				 this->button2->Name = L"button2";
+				 this->button2->Size = System::Drawing::Size(75, 23);
+				 this->button2->TabIndex = 5;
+				 this->button2->Text = L"Kill unit";
+				 this->button2->UseVisualStyleBackColor = true;
 				 // 
 				 // mainform
 				 // 
@@ -481,6 +571,8 @@ namespace DFTool {
 				 this->tabPage1->ResumeLayout(false);
 				 this->tabPage1->PerformLayout();
 				 this->tabPage2->ResumeLayout(false);
+				 this->groupBox2->ResumeLayout(false);
+				 this->groupBox2->PerformLayout();
 				 this->groupBox1->ResumeLayout(false);
 				 this->TimeWarpControls->ResumeLayout(false);
 				 this->TimeWarpControls->PerformLayout();
@@ -505,5 +597,8 @@ namespace DFTool {
 	private: System::Void SetEndSeasonBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void DebugFeatures_ItemCheck(System::Object^  sender, System::Windows::Forms::ItemCheckEventArgs^  e);
 	private: System::Void SetStartDwarfBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void EditCreatureBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SlaughtFlag_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void CancelJobBtn_Click(System::Object^  sender, System::EventArgs^  e);
 };
 }

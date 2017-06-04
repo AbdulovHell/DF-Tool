@@ -43,7 +43,7 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 	//
 	strcat(buf, " ");
 	//
-	__int64 l1nameaddr;
+	uint64_t l1nameaddr;
 	int l1nameind, l2nameind;
 	char l1name[10], l2name[10];
 	// name ind, p1
@@ -258,6 +258,33 @@ int DFTool::mainform::InitStartDwarf()
 	return count;
 }
 
+void DFTool::mainform::UpdateSelectedUnitInfo()
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+	int num = NULL;
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	int offset = num * 8;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+	offset_addr += offset;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+
+	// slaught
+	char flags2; // 0xE4
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x10C + 2), &flags2, 1, NULL);
+	char buf_flags2[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	for (int i = 0, k = 7; i < 8; i++, k--) {
+		buf_flags2[k] = (flags2 & (int)pow((double)2, i)) ? 49 : 48;
+		flags2 << 1;
+	}
+	SlaughtFlag->Checked = buf_flags2[6] - 48;
+	// name
+	char buf[100];
+	strcpy(buf, "");
+	GetFullName(buf, num, DFStartAddr + ml->GetAddrByName("active_creature_vect"));
+	SelCreatureName->Text = gcnew String(buf);
+}
+
 System::Void DFTool::mainform::mainform_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
 	openINI->ShowDialog();
@@ -327,7 +354,7 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 		break;
 	case ProgState::STATE_FORT:
 
-		//Update_selected_unit_wnd();
+		UpdateSelectedUnitInfo();
 		break;
 	case ProgState::STATE_ADV:
 		/*
@@ -432,6 +459,58 @@ System::Void DFTool::mainform::SetStartDwarfBtn_Click(System::Object ^ sender, S
 		uint64_t addr = DFStartAddr + ml->GetAddrByName("start_dwarf");
 		WriteProcessMemory(hDF, (void*)addr, &count, 4, NULL);
 	}
+}
+
+System::Void DFTool::mainform::EditCreatureBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	int num;
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	DwarfEditor^ dfEd = gcnew DwarfEditor(SINGLE, num);
+	dfEd->Show();
+}
+
+System::Void DFTool::mainform::SlaughtFlag_CheckedChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+	int num;
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	int offset = num * 8;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+	offset_addr += offset;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+
+	char flags2;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x10C + 2), &flags2, 1, NULL);
+	char buf[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	for (int i = 0, k = 7; i < 8; i++, k--) {
+		buf[k] = (flags2 & (int)pow((double)2, i)) ? 49 : 48;
+		flags2 << 1;
+	}
+	buf[6] = (int)SlaughtFlag->Checked + 48;
+	flags2 = strtol(buf, NULL, 2);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x10C + 2), &flags2, 1, NULL);
+}
+
+System::Void DFTool::mainform::CancelJobBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+	int num;
+	
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+	offset_addr += num * 8;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+
+	// job
+	// 0x364(job) 0x30(current, set 0 to cancel)    0x8(job_type)
+	uint64_t job = offset_addr + 0x4B0;
+	// ReadProcessMemory(hProcess,(void*)job,&job,4,NULL);
+	uint64_t current_job = 0;
+	WriteProcessMemory(hDF, (void*)job, &current_job, 8, NULL);
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)
