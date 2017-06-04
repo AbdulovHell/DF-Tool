@@ -21,8 +21,6 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 	uint64_t NameOffset = vect;
 	uint64_t ColNameOffset = DFStartAddr + ml->GetAddrByName("names");
 	HANDLE hProcess = hDF;
-	// char buf[100];
-	// strcpy(buf,"");
 
 	uint64_t fnameaddr;
 	char firstname[28];
@@ -36,13 +34,11 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 		ReadProcessMemory(hProcess, (void*)fnameaddr, firstname, 28, NULL);
 		firstname[0] = toupper(firstname[0]);
 		strcat(buf, firstname);
-		// Edit2->Text=firstname;
 	}
 	else {
 		ReadProcessMemory(hProcess, (void*)fnameaddr, firstname, 28, NULL);
 		firstname[0] = toupper(firstname[0]);
 		strcat(buf, firstname);
-		// Edit2->Text=firstname;
 	}
 	//
 	strcat(buf, " ");
@@ -50,13 +46,13 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 	__int64 l1nameaddr;
 	int l1nameind, l2nameind;
 	char l1name[10], l2name[10];
-	// получение индексов имен, первой части
+	// name ind, p1
 	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
 	l1nameaddr += i * 8;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
 	l1nameaddr += 0x40;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameind, 4, NULL);
-	// второй
+	// p2
 	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
 	l1nameaddr += i * 8;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
@@ -138,22 +134,19 @@ void DFTool::mainform::OpenDF()
 								DFStartAddr = (uint64_t)modinfo.lpBaseOfDll;
 								hDF = hProcess;
 								hDFWnd = FindWindow(L"SDL_app", L"Dwarf Fortress");
-								//TODO: Fix it for 64bit
-								uint64_t PauseOffset = ml->GetAddrByName("pause");
-								PauseStateAddr = DFStartAddr + PauseOffset;
+
+								PauseStateAddr = DFStartAddr + ml->GetAddrByName("pause");
 								SeasonAddr = DFStartAddr + ml->GetAddrByName("season");
 								SeasonTickAddr = DFStartAddr + ml->GetAddrByName("season_tick");
 								StateAddr = DFStartAddr + ml->GetAddrByName("state");
 
-								///for (int i = 0; i < 11; i++)
-								///	Debug_func[i] = StartAddr + get_addr_by_name("debug") + i;
-								///Init_DebugFunc();
+								InitDebugFunction();
+								InitTimeWarp();
 								//if (Init_EAW())
 								//	EAW_ON = true;
 								//CheckBox1->Checked = EAW_ON;
 								//Edit1->Text = IntToStr(Init_StartDwarf());
 								progSt = ProgState::STATE_START;
-								InitTimeWarp();
 								/*block_addr =(__int64)StartAddr + get_addr_by_name("main_blck");
 								ReadProcessMemory(hProcess, (void*)block_addr,old, 6, NULL);
 
@@ -203,7 +196,7 @@ void DFTool::mainform::InitTimeWarp()
 
 void DFTool::mainform::EnableTimeWarp()
 {
-	char PauseState; //ставим паузу
+	char PauseState; //pause game
 	ReadProcessMemory(hDF, (void*)PauseStateAddr, &PauseState, 1, NULL);
 	if (!PauseState) {
 		PauseState = 1;
@@ -212,12 +205,12 @@ void DFTool::mainform::EnableTimeWarp()
 	//
 	void *ExtCode = VirtualAllocEx(hDF, NULL, 64, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	uint64_t Inject_point = DFStartAddr + ml->GetAddrByName("inject_point");
-	// меняем исходный код
+	// int
 	uint8_t modsrc[13] = { 0x48,0xB9,0,0,0,0,0,0,0,0,0xFF,0xE1,0x90 };
 	uint64_t JmpToEx = (uint64_t)ExtCode;
 	memcpy(modsrc + 2, &JmpToEx, 8);
 	WriteProcessMemory(hDF, (void*)Inject_point, modsrc, 13, NULL);
-	// внешний блок
+	// ext
 	uint8_t Extern_code[34] = {/*mov eax,01*/0x05,0x01,0x00,0x00,0x00,
 		/*mov*/0x48,0xB9,0,0,0,0,0,0,0,0, 			//+7	StartAddr+0x13030D4
 		/*mov rcx,eax*/0x89,0x01,
@@ -238,6 +231,25 @@ void DFTool::mainform::EnableTimeWarp()
 	TimeWarpEnBtn->Enabled = false;
 }
 
+void DFTool::mainform::InitDebugFunction()
+{
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 2);//no pause
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 9);//no moods
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 119);//no drink
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 10);//no eat
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 1);//no sleep
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 120);//no berserk
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0);//fast mining
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 80235);//turbo speed
+
+	for (int i = 0; i < DebugFuncAddr.Count; i++) {
+		uint8_t state = 0;
+		ReadProcessMemory(hDF, (void*)DebugFuncAddr[i], &state, 1, NULL);
+		DebugFeatures->SetItemChecked(i, state);
+		DebugFeaturesLastState.Add(state);
+	}
+}
+
 System::Void DFTool::mainform::mainform_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
 	openINI->ShowDialog();
@@ -251,7 +263,7 @@ System::Void DFTool::mainform::TimeWarpSetMultBtn_Click(System::Object ^ sender,
 	if (System::UInt32::TryParse(TimeWarpMultEd->Text, mult))
 		WriteProcessMemory(hDF, (void*)TimeWarpMultAddr, &mult, 4, NULL);
 	else
-		;	//TODO: обработать ошибку
+		;	//TODO: err
 }
 
 System::Void DFTool::mainform::TimeWarpEnBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -275,7 +287,7 @@ System::Void DFTool::mainform::SetEmbarkPtBtn_Click(System::Object ^ sender, Sys
 	Int32 count = -1;
 
 	if (!Int32::TryParse(textBox1->Text, count)) {
-		//TODO: мб как-то обработать
+		//TODO: err
 		return;
 	}
 
@@ -296,7 +308,6 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 		int temp;
 		if (!ReadProcessMemory(hDF, (void*)StateAddr, &temp, 4, NULL)) {
 			progSt = ProgState::STATE_DISCON;
-			//ErrorExit(TEXT("ReadProcessMemory"));
 		}
 		else {
 			progSt = (ProgState)temp;
@@ -386,6 +397,21 @@ System::Void DFTool::mainform::SetEndSeasonBtn_Click(System::Object ^ sender, Sy
 {
 	int tick = 10079;
 	WriteProcessMemory(hDF, (void*)SeasonTickAddr, &tick, 4, NULL);
+}
+
+System::Void DFTool::mainform::DebugFeatures_ItemCheck(System::Object ^ sender, System::Windows::Forms::ItemCheckEventArgs ^ e)
+{
+	uint8_t state = (bool)e->NewValue;
+	WriteProcessMemory(hDF, (void*)DebugFuncAddr[e->Index], &state, 1, NULL);
+	/*
+	for (int i = 0; i < DebugFuncAddr.Count; i++) {
+		uint8_t state = DebugFeatures->GetItemChecked(i);
+		if ((bool)state != DebugFeaturesLastState[i]) {
+			DebugFeaturesLastState[i] = (bool)state;
+			WriteProcessMemory(hDF, (void*)DebugFuncAddr[i], &state, 1, NULL);
+		}
+	}
+	*/
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)

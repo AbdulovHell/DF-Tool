@@ -8,6 +8,7 @@ namespace DFTool {
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
+	using namespace System::Collections::Generic;
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
@@ -109,6 +110,7 @@ namespace DFTool {
 		void OpenDF();
 		void InitTimeWarp();
 		void EnableTimeWarp();
+		void InitDebugFunction();
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
@@ -122,6 +124,8 @@ namespace DFTool {
 		uint64_t SeasonAddr;
 		uint64_t SeasonTickAddr;
 		uint64_t StateAddr;
+		List<uint64_t> DebugFuncAddr;
+		List<bool> DebugFeaturesLastState;
 	private: System::ComponentModel::IContainer^  components;
 
 
@@ -262,6 +266,7 @@ namespace DFTool {
 				 this->DebugFeatures->Name = L"DebugFeatures";
 				 this->DebugFeatures->Size = System::Drawing::Size(146, 124);
 				 this->DebugFeatures->TabIndex = 1;
+				 this->DebugFeatures->ItemCheck += gcnew System::Windows::Forms::ItemCheckEventHandler(this, &mainform::DebugFeatures_ItemCheck);
 				 // 
 				 // groupBox1
 				 // 
@@ -460,5 +465,6 @@ namespace DFTool {
 	private: System::Void SetBeginningSeasonBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void SetMidSeasonBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void SetEndSeasonBtn_Click(System::Object^  sender, System::EventArgs^  e);
-	};
+	private: System::Void DebugFeatures_ItemCheck(System::Object^  sender, System::Windows::Forms::ItemCheckEventArgs^  e);
+};
 }
