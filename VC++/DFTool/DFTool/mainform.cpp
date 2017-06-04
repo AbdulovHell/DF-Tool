@@ -142,10 +142,10 @@ void DFTool::mainform::OpenDF()
 
 								InitDebugFunction();
 								InitTimeWarp();
+								StartDwarfEd->Text = InitStartDwarf().ToString();
 								//if (Init_EAW())
 								//	EAW_ON = true;
 								//CheckBox1->Checked = EAW_ON;
-								//Edit1->Text = IntToStr(Init_StartDwarf());
 								progSt = ProgState::STATE_START;
 								/*block_addr =(__int64)StartAddr + get_addr_by_name("main_blck");
 								ReadProcessMemory(hProcess, (void*)block_addr,old, 6, NULL);
@@ -248,6 +248,14 @@ void DFTool::mainform::InitDebugFunction()
 		DebugFeatures->SetItemChecked(i, state);
 		DebugFeaturesLastState.Add(state);
 	}
+}
+
+int DFTool::mainform::InitStartDwarf()
+{
+	int count = 0;
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("start_dwarf");
+	ReadProcessMemory(hDF, (void*)addr, &count, 4, NULL);
+	return count;
 }
 
 System::Void DFTool::mainform::mainform_Load(System::Object ^ sender, System::EventArgs ^ e)
@@ -412,6 +420,18 @@ System::Void DFTool::mainform::DebugFeatures_ItemCheck(System::Object ^ sender, 
 		}
 	}
 	*/
+}
+
+System::Void DFTool::mainform::SetStartDwarfBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	Int32 count = 7;
+	if (!int::TryParse(StartDwarfEd->Text, count)) {
+		return;	//err
+	}
+	if ((count > 1) && (count < 2147483646)) {
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("start_dwarf");
+		WriteProcessMemory(hDF, (void*)addr, &count, 4, NULL);
+	}
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)

@@ -64,6 +64,9 @@ namespace DFTool {
 	private: System::Windows::Forms::Button^  SetMidSeasonBtn;
 	private: System::Windows::Forms::Button^  SetBeginningSeasonBtn;
 	private: System::Windows::Forms::CheckedListBox^  DebugFeatures;
+	private: System::Windows::Forms::TextBox^  StartDwarfEd;
+	private: System::Windows::Forms::Button^  SetStartDwarfBtn;
+	private: System::Windows::Forms::Label^  label2;
 
 	private: System::Windows::Forms::OpenFileDialog^  openINI;
 	public:
@@ -111,6 +114,7 @@ namespace DFTool {
 		void InitTimeWarp();
 		void EnableTimeWarp();
 		void InitDebugFunction();
+		int InitStartDwarf();
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
@@ -163,6 +167,9 @@ namespace DFTool {
 				 this->TimeWarpControls = (gcnew System::Windows::Forms::GroupBox());
 				 this->statusStrip1 = (gcnew System::Windows::Forms::StatusStrip());
 				 this->CheckStatTmr = (gcnew System::Windows::Forms::Timer(this->components));
+				 this->StartDwarfEd = (gcnew System::Windows::Forms::TextBox());
+				 this->SetStartDwarfBtn = (gcnew System::Windows::Forms::Button());
+				 this->label2 = (gcnew System::Windows::Forms::Label());
 				 this->tabControl1->SuspendLayout();
 				 this->tabPage1->SuspendLayout();
 				 this->tabPage2->SuspendLayout();
@@ -186,7 +193,7 @@ namespace DFTool {
 				 this->tabControl1->Controls->Add(this->tabPage2);
 				 this->tabControl1->Controls->Add(this->tabPage3);
 				 this->tabControl1->Controls->Add(this->tabPage4);
-				 this->tabControl1->Location = System::Drawing::Point(12, 67);
+				 this->tabControl1->Location = System::Drawing::Point(12, 122);
 				 this->tabControl1->Name = L"tabControl1";
 				 this->tabControl1->SelectedIndex = 0;
 				 this->tabControl1->Size = System::Drawing::Size(324, 373);
@@ -407,18 +414,19 @@ namespace DFTool {
 				 this->TimeWarpControls->Controls->Add(this->TimeWarpEnBtn);
 				 this->TimeWarpControls->Controls->Add(this->TimeWarpSetMultBtn);
 				 this->TimeWarpControls->Controls->Add(this->TimeWarpMultEd);
-				 this->TimeWarpControls->Location = System::Drawing::Point(93, 12);
+				 this->TimeWarpControls->Location = System::Drawing::Point(16, 67);
 				 this->TimeWarpControls->Name = L"TimeWarpControls";
-				 this->TimeWarpControls->Size = System::Drawing::Size(243, 49);
+				 this->TimeWarpControls->Size = System::Drawing::Size(315, 49);
 				 this->TimeWarpControls->TabIndex = 5;
 				 this->TimeWarpControls->TabStop = false;
 				 this->TimeWarpControls->Text = L"Time warp";
 				 // 
 				 // statusStrip1
 				 // 
-				 this->statusStrip1->Location = System::Drawing::Point(0, 443);
+				 this->statusStrip1->Location = System::Drawing::Point(0, 498);
 				 this->statusStrip1->Name = L"statusStrip1";
 				 this->statusStrip1->Size = System::Drawing::Size(343, 22);
+				 this->statusStrip1->SizingGrip = false;
 				 this->statusStrip1->TabIndex = 6;
 				 this->statusStrip1->Text = L"statusStrip1";
 				 // 
@@ -426,16 +434,46 @@ namespace DFTool {
 				 // 
 				 this->CheckStatTmr->Tick += gcnew System::EventHandler(this, &mainform::CheckStatTmr_Tick);
 				 // 
+				 // StartDwarfEd
+				 // 
+				 this->StartDwarfEd->Location = System::Drawing::Point(189, 13);
+				 this->StartDwarfEd->Name = L"StartDwarfEd";
+				 this->StartDwarfEd->Size = System::Drawing::Size(100, 20);
+				 this->StartDwarfEd->TabIndex = 7;
+				 // 
+				 // SetStartDwarfBtn
+				 // 
+				 this->SetStartDwarfBtn->Location = System::Drawing::Point(293, 13);
+				 this->SetStartDwarfBtn->Name = L"SetStartDwarfBtn";
+				 this->SetStartDwarfBtn->Size = System::Drawing::Size(39, 21);
+				 this->SetStartDwarfBtn->TabIndex = 8;
+				 this->SetStartDwarfBtn->Text = L"Set";
+				 this->SetStartDwarfBtn->UseVisualStyleBackColor = true;
+				 this->SetStartDwarfBtn->Click += gcnew System::EventHandler(this, &mainform::SetStartDwarfBtn_Click);
+				 // 
+				 // label2
+				 // 
+				 this->label2->AutoSize = true;
+				 this->label2->Location = System::Drawing::Point(93, 16);
+				 this->label2->Name = L"label2";
+				 this->label2->Size = System::Drawing::Size(90, 13);
+				 this->label2->TabIndex = 9;
+				 this->label2->Text = L"Start Dwarf count";
+				 // 
 				 // mainform
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 				 this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 				 this->AutoSize = true;
-				 this->ClientSize = System::Drawing::Size(343, 465);
+				 this->ClientSize = System::Drawing::Size(343, 520);
+				 this->Controls->Add(this->label2);
+				 this->Controls->Add(this->SetStartDwarfBtn);
+				 this->Controls->Add(this->StartDwarfEd);
 				 this->Controls->Add(this->statusStrip1);
 				 this->Controls->Add(this->TimeWarpControls);
 				 this->Controls->Add(this->tabControl1);
 				 this->Controls->Add(this->CnctBtn);
+				 this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
 				 this->Name = L"mainform";
 				 this->Text = L"DFTool";
 				 this->Load += gcnew System::EventHandler(this, &mainform::mainform_Load);
@@ -466,5 +504,6 @@ namespace DFTool {
 	private: System::Void SetMidSeasonBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void SetEndSeasonBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void DebugFeatures_ItemCheck(System::Object^  sender, System::Windows::Forms::ItemCheckEventArgs^  e);
+	private: System::Void SetStartDwarfBtn_Click(System::Object^  sender, System::EventArgs^  e);
 };
 }
