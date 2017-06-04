@@ -213,12 +213,12 @@ void DFTool::mainform::EnableTimeWarp()
 	void *ExtCode = VirtualAllocEx(hDF, NULL, 64, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	uint64_t Inject_point = DFStartAddr + ml->GetAddrByName("inject_point");
 	// меняем исходный код
-	char modsrc[13] = { 0x48,0xB9,0,0,0,0,0,0,0,0,0xFF,0xE1,0x90 };
+	uint8_t modsrc[13] = { 0x48,0xB9,0,0,0,0,0,0,0,0,0xFF,0xE1,0x90 };
 	uint64_t JmpToEx = (uint64_t)ExtCode;
 	memcpy(modsrc + 2, &JmpToEx, 8);
 	WriteProcessMemory(hDF, (void*)Inject_point, modsrc, 13, NULL);
 	// внешний блок
-	char Extern_code[34] = {/*mov eax,01*/0x05,0x01,0x00,0x00,0x00,
+	uint8_t Extern_code[34] = {/*mov eax,01*/0x05,0x01,0x00,0x00,0x00,
 		/*mov*/0x48,0xB9,0,0,0,0,0,0,0,0, 			//+7	StartAddr+0x13030D4
 		/*mov rcx,eax*/0x89,0x01,
 		/*cmp eax*/0x3D,0x60,0x27,0x00,0x00,
@@ -297,7 +297,8 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 		if (!ReadProcessMemory(hDF, (void*)StateAddr, &temp, 4, NULL)) {
 			progSt = ProgState::STATE_DISCON;
 			//ErrorExit(TEXT("ReadProcessMemory"));
-		}else{
+		}
+		else {
 			progSt = (ProgState)temp;
 		}
 	}
@@ -307,12 +308,10 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 		break;
 	case ProgState::STATE_FORT:
 
-		Update_selected_unit_wnd();
-
+		//Update_selected_unit_wnd();
 		break;
 	case ProgState::STATE_ADV:
-
-
+		/*
 		if (adv_first) {
 			AttPoints(NULL, false);
 			SkillPoints(NULL, false);
@@ -329,13 +328,13 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 
 		if (MaxSpeed)
 			update_speed();
-
+		*/
 		break;
 	case ProgState::STATE_START:
-		Button10->Enabled = !timewarpON;
-		Button32->Enabled = true;
-		PrintSetup1->Enabled = true;
-		Button1->Enabled = false;
+		//Button10->Enabled = !timewarpON;
+		//Button32->Enabled = true;
+		//PrintSetup1->Enabled = true;
+		//Button1->Enabled = false;
 		progSt = ProgState::STATE_IDLE;
 
 		break;
@@ -345,6 +344,48 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 	default:
 		break;
 	}
+}
+
+System::Void DFTool::mainform::SetSpringBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint8_t SetSeason = 0;	//Spring
+	WriteProcessMemory(hDF, (void*)SeasonAddr, &SetSeason, 1, NULL);
+}
+
+System::Void DFTool::mainform::SetSummerBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint8_t SetSeason = 1;	//Summer
+	WriteProcessMemory(hDF, (void*)SeasonAddr, &SetSeason, 1, NULL);
+}
+
+System::Void DFTool::mainform::SetAutumnBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint8_t SetSeason = 2;	//Autumn
+	WriteProcessMemory(hDF, (void*)SeasonAddr, &SetSeason, 1, NULL);
+}
+
+System::Void DFTool::mainform::SetWinterBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint8_t SetSeason = 3;	//Winter
+	WriteProcessMemory(hDF, (void*)SeasonAddr, &SetSeason, 1, NULL);
+}
+
+System::Void DFTool::mainform::SetBeginningSeasonBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	int tick = 1;
+	WriteProcessMemory(hDF, (void*)SeasonTickAddr, &tick, 4, NULL);
+}
+
+System::Void DFTool::mainform::SetMidSeasonBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	int tick = 10080 / 2;
+	WriteProcessMemory(hDF, (void*)SeasonTickAddr, &tick, 4, NULL);
+}
+
+System::Void DFTool::mainform::SetEndSeasonBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	int tick = 10079;
+	WriteProcessMemory(hDF, (void*)SeasonTickAddr, &tick, 4, NULL);
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)

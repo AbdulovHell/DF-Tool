@@ -171,6 +171,7 @@ namespace DFTool {
 		void ChangeMode(int _mode);
 		void ChangeMode(int _mode, int dwarfnum);
 		void LoadDwarfInForm();
+		void DwarfListUpdate();
 		int RangeRand(int range_min, int range_max);
 		/// <summary>
 		/// Обязательная переменная конструктора.

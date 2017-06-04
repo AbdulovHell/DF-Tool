@@ -184,14 +184,7 @@ void DFTool::DwarfEditor::LoadDwarfInForm()
 	AgeDeathDay->Text = ((int)((((double)o_time - (d_month - 1) * 28 * 1200)) / 1200) + 1).ToString();
 }
 
-int DFTool::DwarfEditor::RangeRand(int range_min, int range_max)
-{
-	double u = ((double)rand() / (RAND_MAX + 1)) * (range_max - range_min) +
-		range_min;
-	return u;
-}
-
-System::Void DFTool::DwarfEditor::DwarfListUpdateBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+void DFTool::DwarfEditor::DwarfListUpdate()
 {
 	int dwarfs = mainform::GetDwarfCount();
 	DwarfList->Items->Clear();
@@ -215,10 +208,22 @@ System::Void DFTool::DwarfEditor::DwarfListUpdateBtn_Click(System::Object ^ send
 		addr += 0x128;
 		ReadProcessMemory(hDF, (void*)addr, &addr, 4, NULL);
 		char temp[20];
-		sprintf(temp, "%d", addr);
+		sprintf(temp, "%d", (int)addr);
 		strcat(buf, temp);
 		DwarfList->Items->Add(gcnew String(buf));
 	}
+}
+
+int DFTool::DwarfEditor::RangeRand(int range_min, int range_max)
+{
+	double u = ((double)rand() / (RAND_MAX + 1)) * (range_max - range_min) +
+		range_min;
+	return (int)u;
+}
+
+System::Void DFTool::DwarfEditor::DwarfListUpdateBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	DwarfListUpdate();
 }
 
 System::Void DFTool::DwarfEditor::DwarfEditor_Load(System::Object ^ sender, System::EventArgs ^ e)
@@ -285,6 +290,9 @@ System::Void DFTool::DwarfEditor::DwarfEditor_Load(System::Object ^ sender, Syst
 		NameSecondP1Ind->Items->Add(gcnew String(Name));
 		NameSecondP2Ind->Items->Add(gcnew String(Name));
 	}
+	//
+	DwarfListUpdate();
+	DwarfList->SelectedIndex = 0;
 }
 
 System::Void DFTool::DwarfEditor::ApplyNameBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -303,8 +311,8 @@ System::Void DFTool::DwarfEditor::ApplyNameBtn_Click(System::Object ^ sender, Sy
 	fnameaddr += SelectedDwarf * 8;
 	ReadProcessMemory(hProcess, (void*)fnameaddr, &fnameaddr, 8, NULL);
 
-	UCHAR len = strlen(firstname);
-	UCHAR mode = 0x0F;
+	uint8_t len = strlen(firstname);
+	uint8_t mode = 0x0F;
 	if (len < 16 && len>0) {
 		WriteProcessMemory(hProcess, (void*)fnameaddr, firstname, strlen(firstname) + 1, NULL);
 		WriteProcessMemory(hProcess, (void*)(fnameaddr + 0x10), &len, 1, NULL);
