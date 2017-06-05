@@ -49,7 +49,8 @@ namespace DFTool {
 	private: System::Windows::Forms::GroupBox^  TimeWarpControls;
 	private: System::Windows::Forms::Button^  OpenDwarfEditorBtn;
 	private: System::Windows::Forms::Button^  SetEmbarkPtBtn;
-	private: System::Windows::Forms::TextBox^  textBox1;
+	private: System::Windows::Forms::TextBox^  EmbarkPointsEd;
+
 	private: System::Windows::Forms::StatusStrip^  statusStrip1;
 	private: System::Windows::Forms::Timer^  CheckStatTmr;
 	private: System::Windows::Forms::Label^  label1;
@@ -102,8 +103,8 @@ namespace DFTool {
 		}
 		static uint32_t GetDwarfCount() {
 			uint32_t dwarfs = 7;
-			//uint64_t StartDwarfCountAddr = DFStartAddr + ml->GetAddrByName("start_dwarf");
-			//ReadProcessMemory(hDF, (void*)StartDwarfCountAddr, &dwarfs, 4, NULL);
+			uint64_t StartDwarfCountAddr = DFStartAddr + ml->GetAddrByName("start_dwarf");
+			ReadProcessMemory(hDF, (void*)StartDwarfCountAddr, &dwarfs, 4, NULL);
 			return dwarfs;
 		}
 		static void GetFullName(char *buf, int i, uint64_t vect);
@@ -137,7 +138,6 @@ namespace DFTool {
 		uint64_t SeasonTickAddr;
 		uint64_t StateAddr;
 		List<uint64_t> DebugFuncAddr;
-		List<bool> DebugFeaturesLastState;
 	private: System::ComponentModel::IContainer^  components;
 
 
@@ -155,10 +155,12 @@ namespace DFTool {
 				 this->tabPage1 = (gcnew System::Windows::Forms::TabPage());
 				 this->label1 = (gcnew System::Windows::Forms::Label());
 				 this->SetEmbarkPtBtn = (gcnew System::Windows::Forms::Button());
-				 this->textBox1 = (gcnew System::Windows::Forms::TextBox());
+				 this->EmbarkPointsEd = (gcnew System::Windows::Forms::TextBox());
 				 this->OpenDwarfEditorBtn = (gcnew System::Windows::Forms::Button());
 				 this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
 				 this->groupBox2 = (gcnew System::Windows::Forms::GroupBox());
+				 this->button2 = (gcnew System::Windows::Forms::Button());
+				 this->button1 = (gcnew System::Windows::Forms::Button());
 				 this->CancelJobBtn = (gcnew System::Windows::Forms::Button());
 				 this->EditCreatureBtn = (gcnew System::Windows::Forms::Button());
 				 this->SlaughtFlag = (gcnew System::Windows::Forms::CheckBox());
@@ -183,8 +185,6 @@ namespace DFTool {
 				 this->StartDwarfEd = (gcnew System::Windows::Forms::TextBox());
 				 this->SetStartDwarfBtn = (gcnew System::Windows::Forms::Button());
 				 this->label2 = (gcnew System::Windows::Forms::Label());
-				 this->button1 = (gcnew System::Windows::Forms::Button());
-				 this->button2 = (gcnew System::Windows::Forms::Button());
 				 this->tabControl1->SuspendLayout();
 				 this->tabPage1->SuspendLayout();
 				 this->tabPage2->SuspendLayout();
@@ -219,7 +219,7 @@ namespace DFTool {
 				 // 
 				 this->tabPage1->Controls->Add(this->label1);
 				 this->tabPage1->Controls->Add(this->SetEmbarkPtBtn);
-				 this->tabPage1->Controls->Add(this->textBox1);
+				 this->tabPage1->Controls->Add(this->EmbarkPointsEd);
 				 this->tabPage1->Controls->Add(this->OpenDwarfEditorBtn);
 				 this->tabPage1->Location = System::Drawing::Point(4, 22);
 				 this->tabPage1->Name = L"tabPage1";
@@ -248,12 +248,12 @@ namespace DFTool {
 				 this->SetEmbarkPtBtn->UseVisualStyleBackColor = true;
 				 this->SetEmbarkPtBtn->Click += gcnew System::EventHandler(this, &mainform::SetEmbarkPtBtn_Click);
 				 // 
-				 // textBox1
+				 // EmbarkPointsEd
 				 // 
-				 this->textBox1->Location = System::Drawing::Point(83, 6);
-				 this->textBox1->Name = L"textBox1";
-				 this->textBox1->Size = System::Drawing::Size(146, 20);
-				 this->textBox1->TabIndex = 1;
+				 this->EmbarkPointsEd->Location = System::Drawing::Point(83, 6);
+				 this->EmbarkPointsEd->Name = L"EmbarkPointsEd";
+				 this->EmbarkPointsEd->Size = System::Drawing::Size(146, 20);
+				 this->EmbarkPointsEd->TabIndex = 1;
 				 // 
 				 // OpenDwarfEditorBtn
 				 // 
@@ -292,6 +292,24 @@ namespace DFTool {
 				 this->groupBox2->TabIndex = 2;
 				 this->groupBox2->TabStop = false;
 				 this->groupBox2->Text = L"Selected creature in \'v\' mode";
+				 // 
+				 // button2
+				 // 
+				 this->button2->Location = System::Drawing::Point(158, 68);
+				 this->button2->Name = L"button2";
+				 this->button2->Size = System::Drawing::Size(75, 23);
+				 this->button2->TabIndex = 5;
+				 this->button2->Text = L"Kill unit";
+				 this->button2->UseVisualStyleBackColor = true;
+				 // 
+				 // button1
+				 // 
+				 this->button1->Location = System::Drawing::Point(158, 39);
+				 this->button1->Name = L"button1";
+				 this->button1->Size = System::Drawing::Size(75, 23);
+				 this->button1->TabIndex = 4;
+				 this->button1->Text = L"Heal unit";
+				 this->button1->UseVisualStyleBackColor = true;
 				 // 
 				 // CancelJobBtn
 				 // 
@@ -504,6 +522,7 @@ namespace DFTool {
 				 // 
 				 // CheckStatTmr
 				 // 
+				 this->CheckStatTmr->Interval = 200;
 				 this->CheckStatTmr->Tick += gcnew System::EventHandler(this, &mainform::CheckStatTmr_Tick);
 				 // 
 				 // StartDwarfEd
@@ -531,24 +550,6 @@ namespace DFTool {
 				 this->label2->Size = System::Drawing::Size(90, 13);
 				 this->label2->TabIndex = 9;
 				 this->label2->Text = L"Start Dwarf count";
-				 // 
-				 // button1
-				 // 
-				 this->button1->Location = System::Drawing::Point(158, 39);
-				 this->button1->Name = L"button1";
-				 this->button1->Size = System::Drawing::Size(75, 23);
-				 this->button1->TabIndex = 4;
-				 this->button1->Text = L"Heal unit";
-				 this->button1->UseVisualStyleBackColor = true;
-				 // 
-				 // button2
-				 // 
-				 this->button2->Location = System::Drawing::Point(158, 68);
-				 this->button2->Name = L"button2";
-				 this->button2->Size = System::Drawing::Size(75, 23);
-				 this->button2->TabIndex = 5;
-				 this->button2->Text = L"Kill unit";
-				 this->button2->UseVisualStyleBackColor = true;
 				 // 
 				 // mainform
 				 // 

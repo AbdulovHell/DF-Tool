@@ -112,6 +112,7 @@ void DFTool::mainform::OpenDF()
 	try {
 		if (!ml->isLoaded())
 			throw gcnew Exception("Load config file first");
+		if (hDF != NULL) CloseHandle(hDF);
 		DWORD aProcesses[1024], cbNeeded, cProcesses;
 		HANDLE hProcess;
 		struct _MODULEINFO modinfo;
@@ -129,7 +130,7 @@ void DFTool::mainform::OpenDF()
 				if (EnumProcessModulesEx(hProcess, &hModule, sizeof(HMODULE), &dummy, LIST_MODULES_64BIT)) {
 					if (GetModuleBaseName(hProcess, hModule, szProcessName, sizeof(szProcessName) / sizeof(TCHAR))) {
 						String^ str = gcnew String(szProcessName);
-						if (("Dwarf Fortress.exe" == str) || ("Dwarf Fortress Rus.exe" == str)) {
+						if ("Dwarf Fortress.exe" == str) {
 							if (GetModuleInformation(hProcess, hModule, &modinfo, sizeof(MODULEINFO))) {
 								DFStartAddr = (uint64_t)modinfo.lpBaseOfDll;
 								hDF = hProcess;
@@ -143,15 +144,12 @@ void DFTool::mainform::OpenDF()
 								InitDebugFunction();
 								InitTimeWarp();
 								StartDwarfEd->Text = InitStartDwarf().ToString();
-								//if (Init_EAW())
-								//	EAW_ON = true;
-								//CheckBox1->Checked = EAW_ON;
+								//CheckBox1->Checked = Init_EAW();
+								//uint64_t block_addr = DFStartAddr + ml->GetAddrByName("main_blck");
+								//ReadProcessMemory(hProcess, (void*)block_addr,old, 6, NULL);
+								//Init_moodAcc();
 								progSt = ProgState::STATE_START;
-								/*block_addr =(__int64)StartAddr + get_addr_by_name("main_blck");
-								ReadProcessMemory(hProcess, (void*)block_addr,old, 6, NULL);
-
-								Init_moodAcc();     */
-								///Timer1->Enabled = true;
+								CheckStatTmr->Enabled = true;
 								return;
 							}
 							//else
@@ -233,6 +231,8 @@ void DFTool::mainform::EnableTimeWarp()
 
 void DFTool::mainform::InitDebugFunction()
 {
+	DebugFuncAddr.Clear();
+
 	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 2);//no pause
 	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 9);//no moods
 	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 119);//no drink
@@ -246,7 +246,6 @@ void DFTool::mainform::InitDebugFunction()
 		uint8_t state = 0;
 		ReadProcessMemory(hDF, (void*)DebugFuncAddr[i], &state, 1, NULL);
 		DebugFeatures->SetItemChecked(i, state);
-		DebugFeaturesLastState.Add(state);
 	}
 }
 
@@ -289,7 +288,7 @@ System::Void DFTool::mainform::mainform_Load(System::Object ^ sender, System::Ev
 {
 	openINI->ShowDialog();
 	ml = gcnew MemoryLayout((char*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(openINI->FileName));
-	ml->isLoaded();
+	//ml->isLoaded();
 }
 
 System::Void DFTool::mainform::TimeWarpSetMultBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -321,7 +320,7 @@ System::Void DFTool::mainform::SetEmbarkPtBtn_Click(System::Object ^ sender, Sys
 {
 	Int32 count = -1;
 
-	if (!Int32::TryParse(textBox1->Text, count)) {
+	if (!Int32::TryParse(EmbarkPointsEd->Text, count)) {
 		//TODO: err
 		return;
 	}
@@ -438,15 +437,6 @@ System::Void DFTool::mainform::DebugFeatures_ItemCheck(System::Object ^ sender, 
 {
 	uint8_t state = (bool)e->NewValue;
 	WriteProcessMemory(hDF, (void*)DebugFuncAddr[e->Index], &state, 1, NULL);
-	/*
-	for (int i = 0; i < DebugFuncAddr.Count; i++) {
-		uint8_t state = DebugFeatures->GetItemChecked(i);
-		if ((bool)state != DebugFeaturesLastState[i]) {
-			DebugFeaturesLastState[i] = (bool)state;
-			WriteProcessMemory(hDF, (void*)DebugFuncAddr[i], &state, 1, NULL);
-		}
-	}
-	*/
 }
 
 System::Void DFTool::mainform::SetStartDwarfBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -498,9 +488,9 @@ System::Void DFTool::mainform::CancelJobBtn_Click(System::Object ^ sender, Syste
 	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
 	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
 	int num;
-	
+
 	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
-	
+
 	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
 	offset_addr += num * 8;
 	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);

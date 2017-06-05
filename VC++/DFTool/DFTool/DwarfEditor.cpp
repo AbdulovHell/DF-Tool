@@ -13,23 +13,50 @@ void DFTool::DwarfEditor::ChangeMode(int _mode)
 	DwarfListUpdateBtn->Enabled = true;
 	DwarfList->Enabled = true;
 	DwarfList->Items->Clear();
-	NameEd->Enabled = true;
-	NameEd->Visible = true;
+	SetAllSkill5Btn->Enabled = true;
+	SetAllSkill5NBtn->Text = "Set L + 5 skills, only above \"Novice\"";
+	CpySkillBtn->Enabled = true;
+	ClrAllSkillsBtn->Text = "Clear all skills";
+	SetDwarfSP->Enabled = true;
+	DwarfSPEd->Enabled = true;
 }
 
 void DFTool::DwarfEditor::ChangeMode(int _mode, int dwarfnum)
 {
+	HANDLE hDF = mainform::GetDFHandle();
 	EditMode = _mode;
 	DwarfListUpdateBtn->Enabled = false;
 	DwarfList->Items->Clear();
 	for (int i = 0; i < dwarfnum + 1; i++) {
-		DwarfList->Items->Add(" ");
+		if (i == dwarfnum) {
+			char buf[120];
+			strcpy(buf, "");
+			mainform::GetFullName(buf, dwarfnum, mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect"));
+			strcat(buf, " id:");
+			uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect");
+			ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+			addr = addr + dwarfnum * 8;
+			ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+			addr += 0x128;
+			ReadProcessMemory(hDF, (void*)addr, &addr, 4, NULL);
+			char temp[20];
+			sprintf(temp, "%d", (int)addr);
+			strcat(buf, temp);
+			DwarfList->Items->Add(gcnew String(buf));
+		}
+		else
+			DwarfList->Items->Add(" ");
 	}
+	DwarfList->SelectedIndexChanged -= gcnew System::EventHandler(this, &DwarfEditor::DwarfList_SelectedIndexChanged);
 	DwarfList->SelectedIndex = dwarfnum;
-	LoadDwarfInForm();
+	DwarfList->SelectedIndexChanged += gcnew System::EventHandler(this, &DwarfEditor::DwarfList_SelectedIndexChanged);
 	DwarfList->Enabled = false;
-	NameEd->Enabled = false;
-	NameEd->Visible = false;
+	SetAllSkill5Btn->Enabled = false;
+	SetAllSkill5NBtn->Text = "Set L + 5 skills, only above \"Dabbling\"";
+	CpySkillBtn->Enabled = false;
+	ClrAllSkillsBtn->Text = "Clear all prof skills";
+	SetDwarfSP->Enabled = false;
+	DwarfSPEd->Enabled = false;
 }
 
 void DFTool::DwarfEditor::LoadDwarfInForm()
@@ -291,8 +318,12 @@ System::Void DFTool::DwarfEditor::DwarfEditor_Load(System::Object ^ sender, Syst
 		NameSecondP2Ind->Items->Add(gcnew String(Name));
 	}
 	//
-	DwarfListUpdate();
-	DwarfList->SelectedIndex = 0;
+	if (EditMode == EMBARK) {
+		DwarfListUpdate();
+		DwarfList->SelectedIndex = 0;
+	}
+	else
+		LoadDwarfInForm();
 }
 
 System::Void DFTool::DwarfEditor::ApplyNameBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -380,8 +411,8 @@ System::Void DFTool::DwarfEditor::button20_Click(System::Object ^ sender, System
 	//attributes
 	uint64_t AttrOffset = (EditMode == EMBARK) ? mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("creature_vect") : mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect");
 	//dwarf offset1 soul offset2
-	//0     470                     +1C  phys
-	//0     80C     0    9C         +1C  soul
+	//0     5DC                     +1C  phys
+	//0     A70     0    9C         +1C  soul
 	//int tempAddr;
 	ReadProcessMemory(hProcess, (void*)AttrOffset, &tempAddr, 8, NULL);
 	tempAddr += SelectedDwarf * 8;
@@ -472,25 +503,54 @@ System::Void DFTool::DwarfEditor::SetAllSkill5Btn_Click(System::Object ^ sender,
 System::Void DFTool::DwarfEditor::SetAllSkill5NBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	HANDLE hProcess = mainform::GetDFHandle();
-	int mas[135];
-	for (int i = 0; i < 135; i++) mas[i] = -1;
+	if (EditMode == EMBARK) {
+		int mas[135];
+		for (int i = 0; i < 135; i++) mas[i] = -1;
 
-	uint64_t tempAddr;
-	uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("main");
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	addr = tempAddr + 0x8;
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	addr = tempAddr + 0x120;
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	int SelectedDwarf = DwarfList->SelectedIndex;
-	addr = tempAddr + SelectedDwarf * 8;
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	addr = tempAddr + 0x7C;
-	ReadProcessMemory(hProcess, (void*)addr, mas, 135 * sizeof(int), NULL);
+		uint64_t tempAddr;
+		uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("main");
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x8;
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x120;
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		int SelectedDwarf = DwarfList->SelectedIndex;
+		addr = tempAddr + SelectedDwarf * 8;
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x7C;
+		ReadProcessMemory(hProcess, (void*)addr, mas, 135 * sizeof(int), NULL);
 
-	for (int i = 0; i < 135; i++) if (mas[i] > 0) mas[i] = 20;
+		for (int i = 0; i < 135; i++) if (mas[i] > 0) mas[i] = 20;
 
-	WriteProcessMemory(hProcess, (void*)addr, mas, 135 * sizeof(int), NULL);
+		WriteProcessMemory(hProcess, (void*)addr, mas, 135 * sizeof(int), NULL);
+	}
+	else {
+		//unit-status-current_soul-skills
+		uint64_t tempAddr;
+		uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect");
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		tempAddr += DwarfList->SelectedIndex * 8;
+		ReadProcessMemory(hProcess, (void*)tempAddr, &tempAddr, 8, NULL);
+		tempAddr += 0xA70;
+		ReadProcessMemory(hProcess, (void*)tempAddr, &tempAddr, 8, NULL);
+		uint64_t Start;
+		ReadProcessMemory(hProcess, (void*)(tempAddr + 0x218), &Start, 8, NULL);
+		uint64_t End;
+		ReadProcessMemory(hProcess, (void*)(tempAddr + 0x220), &End, 8, NULL);
+		size_t vect_size = (End - Start) / 8;
+		for (size_t i = 0; i < vect_size; i++) {
+			uint64_t temp;
+			ReadProcessMemory(hProcess, (void*)(Start + i * 8), &temp, 8, NULL);
+			uint16_t id;
+			uint32_t rating;
+			ReadProcessMemory(hProcess, (void*)temp, &id, 2, NULL);
+			ReadProcessMemory(hProcess, (void*)(temp + 4), &rating, 4, NULL);
+			if ((id >= 0 && id < 38) || (id == 47) || (id == 48) || (id == 49) || (id == 55) || (id > 57 && id < 71) || (id > 108 && id < 116) || (id == 117) || (id == 133) || (id == 134)) {
+				rating = 20;
+				WriteProcessMemory(hProcess, (void*)(temp + 4), &rating, 4, NULL);
+			}
+		}
+	}
 }
 
 System::Void DFTool::DwarfEditor::CpySkillBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -526,19 +586,53 @@ System::Void DFTool::DwarfEditor::CpySkillBtn_Click(System::Object ^ sender, Sys
 System::Void DFTool::DwarfEditor::ClrAllSkillsBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	HANDLE hProcess = mainform::GetDFHandle();
-	int mas[135];
-	for (int i = 0; i < 135; i++) mas[i] = 0;
+	if (EditMode == EMBARK) {
+		int mas[135];
+		for (int i = 0; i < 135; i++) mas[i] = 0;
 
-	uint64_t tempAddr;
-	uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("main");
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	addr = tempAddr + 0x8;
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	addr = tempAddr + 0x120;
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	int SelectedDwarf = DwarfList->SelectedIndex;
-	addr = tempAddr + SelectedDwarf * 8;
-	ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
-	addr = tempAddr + 0x7C;
-	WriteProcessMemory(hProcess, (void*)addr, mas, 135 * sizeof(int), NULL);
+		uint64_t tempAddr;
+		uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("main");
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x8;
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x120;
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		int SelectedDwarf = DwarfList->SelectedIndex;
+		addr = tempAddr + SelectedDwarf * 8;
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		addr = tempAddr + 0x7C;
+		WriteProcessMemory(hProcess, (void*)addr, mas, 135 * sizeof(int), NULL);
+	}
+	else {
+		//unit-status-current_soul-skills
+		uint64_t tempAddr;
+		uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect");
+		ReadProcessMemory(hProcess, (void*)addr, &tempAddr, 8, NULL);
+		tempAddr += DwarfList->SelectedIndex * 8;
+		ReadProcessMemory(hProcess, (void*)tempAddr, &tempAddr, 8, NULL);
+		tempAddr += 0xA70;
+		ReadProcessMemory(hProcess, (void*)tempAddr, &tempAddr, 8, NULL);
+		uint64_t Start;
+		ReadProcessMemory(hProcess, (void*)(tempAddr + 0x218), &Start, 8, NULL);
+		uint64_t End;
+		ReadProcessMemory(hProcess, (void*)(tempAddr + 0x220), &End, 8, NULL);
+		size_t vect_size = (End - Start) / 8;
+		for (size_t i = 0; i < vect_size; i++) {
+			uint64_t temp;
+			ReadProcessMemory(hProcess, (void*)(Start + i * 8), &temp, 8, NULL);
+			uint16_t id;
+			ReadProcessMemory(hProcess, (void*)temp, &id, 2, NULL);
+			if ((id >= 0 && id < 38) || (id == 47) || (id == 48) || (id == 49) || (id == 55) || (id > 57 && id < 71) || (id > 108 && id < 116) || (id == 117) || (id == 133) || (id == 134)) {
+				for (size_t j = i; j < vect_size - 1; j++) {
+					uint64_t tmp;
+					ReadProcessMemory(hProcess, (void*)(Start + (j + 1) * 8), &tmp, 8, NULL);
+					WriteProcessMemory(hProcess, (void*)(Start + j * 8), &tmp, 8, NULL);
+				}
+				vect_size--;
+				i--;
+				End -= 8;
+				WriteProcessMemory(hProcess, (void*)(tempAddr + 0x220), &End, 8, NULL);
+			}
+		}
+	}
 }
