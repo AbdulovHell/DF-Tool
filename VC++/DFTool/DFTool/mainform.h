@@ -273,6 +273,11 @@ namespace DFTool {
 				 this->statusStrip1->SuspendLayout();
 				 this->SuspendLayout();
 				 // 
+				 // openINI
+				 // 
+				 this->openINI->DefaultExt = L"ini";
+				 this->openINI->Filter = L"DF Tool memory offsets|*.ini";
+				 // 
 				 // CnctBtn
 				 // 
 				 this->CnctBtn->Location = System::Drawing::Point(12, 12);
