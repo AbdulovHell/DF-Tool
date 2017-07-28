@@ -22,9 +22,6 @@ namespace DFTool {
 		mainform(void)
 		{
 			InitializeComponent();
-			//
-			//TODO: добавьте код конструктора
-			//
 		}
 
 	protected:
@@ -146,7 +143,7 @@ namespace DFTool {
 			ReadProcessMemory(hDF, (void*)StartDwarfCountAddr, &dwarfs, 4, NULL);
 			return dwarfs;
 		}
-		static void GetFullName(char *buf, int i, uint64_t vect);
+		static void GetFullName(char *buf, uint32_t len, int i, uint64_t vect);
 	private:
 		enum class ProgState : int {
 			STATE_MAIN = 3,

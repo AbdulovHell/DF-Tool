@@ -16,7 +16,7 @@ void Main(array<String^>^ args) {
 	Application::Run(%form);
 }
 
-void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
+void DFTool::mainform::GetFullName(char * buf, uint32_t len, int i, uint64_t vect)
 {
 	uint64_t NameOffset = vect;
 	uint64_t ColNameOffset = DFStartAddr + ml->GetAddrByName("names");
@@ -33,15 +33,15 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 		ReadProcessMemory(hProcess, (void*)fnameaddr, &fnameaddr, 8, NULL);
 		ReadProcessMemory(hProcess, (void*)fnameaddr, firstname, 28, NULL);
 		firstname[0] = toupper(firstname[0]);
-		strcat(buf, firstname);
+		strcat_s(buf, len, firstname);
 	}
 	else {
 		ReadProcessMemory(hProcess, (void*)fnameaddr, firstname, 28, NULL);
 		firstname[0] = toupper(firstname[0]);
-		strcat(buf, firstname);
+		strcat_s(buf, len, firstname);
 	}
 	//
-	strcat(buf, " ");
+	strcat_s(buf, len, " ");
 	//
 	uint64_t l1nameaddr;
 	int l1nameind, l2nameind;
@@ -69,7 +69,7 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 
 	l1name[0] = toupper(l1name[0]);
 
-	strcat(buf, l1name);
+	strcat_s(buf, len, l1name);
 
 	ReadProcessMemory(hProcess, (void*)ColNameOffset, &l1nameaddr, 8, NULL);
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
@@ -79,7 +79,7 @@ void DFTool::mainform::GetFullName(char * buf, int i, uint64_t vect)
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, l2name, 10, NULL);
 
-	strcat(buf, l2name);
+	strcat_s(buf, len, l2name);
 
 	fix_name(buf);
 }
@@ -274,13 +274,13 @@ void DFTool::mainform::UpdateSelectedUnitInfo()
 	char buf_flags2[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	for (int i = 0, k = 7; i < 8; i++, k--) {
 		buf_flags2[k] = (flags2 & (int)pow((double)2, i)) ? 49 : 48;
-		flags2 << 1;
+		//flags2 << 1;
 	}
 	SlaughtFlag->Checked = buf_flags2[6] - 48;
 	// name
 	char buf[100];
-	strcpy(buf, "");
-	GetFullName(buf, num, DFStartAddr + ml->GetAddrByName("active_creature_vect"));
+	strcpy_s(buf, 100, "");
+	GetFullName(buf, 100, num, DFStartAddr + ml->GetAddrByName("active_creature_vect"));
 	SelCreatureName->Text = gcnew String(buf);
 }
 
@@ -668,15 +668,15 @@ System::Void DFTool::mainform::SlaughtFlag_CheckedChanged(System::Object ^ sende
 	offset_addr += offset;
 	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
 
-	char flags2;
+	uint8_t flags2;
 	ReadProcessMemory(hDF, (void*)(offset_addr + 0x10C + 2), &flags2, 1, NULL);
 	char buf[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	for (int i = 0, k = 7; i < 8; i++, k--) {
 		buf[k] = (flags2 & (int)pow((double)2, i)) ? 49 : 48;
-		flags2 << 1;
+		//flags2 << 1;
 	}
 	buf[6] = (int)SlaughtFlag->Checked + 48;
-	flags2 = strtol(buf, NULL, 2);
+	flags2 = (uint8_t)strtol(buf, NULL, 2);
 	WriteProcessMemory(hDF, (void*)(offset_addr + 0x10C + 2), &flags2, 1, NULL);
 }
 

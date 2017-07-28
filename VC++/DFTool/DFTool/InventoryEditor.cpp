@@ -48,7 +48,7 @@ void DFTool::InventoryEditor::LoadInventory()
 	InventoryOffset += 0x3F0;
 	ReadProcessMemory(hDF, (void*)InventoryOffset, &InventoryOffset, 8, NULL);
 	ReadProcessMemory(hDF, (void*)InventoryOffset_end, &InventoryOffset_end, 8, NULL);
-	uint32_t count = (InventoryOffset_end - InventoryOffset) / 8;
+	uint32_t count = (uint32_t)((InventoryOffset_end - InventoryOffset) / 8);
 	uint64_t ItemAddr = NULL;
 	for (uint32_t i = 0; i < count; i++) {
 		ItemAddr = InventoryOffset + i * 8;
@@ -135,7 +135,7 @@ void DFTool::InventoryEditor::LoadItem(Item ^ item, bool wCont)
 		uint64_t last_item = item->ItemAddr + 0x40;
 		ReadProcessMemory(hDF, (void*)first_item, &first_item, 8, NULL);
 		ReadProcessMemory(hDF, (void*)last_item, &last_item, 8, NULL);
-		uint32_t count = (last_item - first_item) / 8;
+		uint32_t count = (uint32_t)((last_item - first_item) / 8);
 		for (uint32_t i = 0; i < count; i++) {		//D50A38+df
 			uint64_t itemAddr = first_item + 8 * i;
 			ReadProcessMemory(hDF, (void*)itemAddr, &itemAddr, 8, NULL);
@@ -182,8 +182,8 @@ uint64_t DFTool::InventoryEditor::FindItem(uint32_t fId)
 		uint64_t offset_end = mainform::GetDFStartAddr() + item_vectors[i] + 8;
 		ReadProcessMemory(hDF, (void*)offset_sta, &offset_sta, 8, NULL);
 		ReadProcessMemory(hDF, (void*)offset_end, &offset_end, 8, NULL);
-		uint32_t count = (offset_end - offset_sta) / 8;
-		for (int k = 0; k < count; k++) {
+		uint32_t count = (uint32_t)((offset_end - offset_sta) / 8);
+		for (uint32_t k = 0; k < count; k++) {
 			uint64_t temp;
 			//ReadProcessMemory(hDF, (void*)offset_sta, &temp, 8, NULL);
 			ReadProcessMemory(hDF, (void*)(offset_sta + k * 8), &temp, 8, NULL);

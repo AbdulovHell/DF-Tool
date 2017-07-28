@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include <Psapi.h>
 #include <stdio.h>
@@ -30,9 +29,9 @@ void DFTool::DwarfEditor::ChangeMode(int _mode, int dwarfnum)
 	for (int i = 0; i < dwarfnum + 1; i++) {
 		if (i == dwarfnum) {
 			char buf[120];
-			strcpy(buf, "");
-			mainform::GetFullName(buf, dwarfnum, mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect"));
-			strcat(buf, " id:");
+			strcpy_s(buf, 120, "");
+			mainform::GetFullName(buf, 120, dwarfnum, mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect"));
+			strcat_s(buf, 120, " id:");
 			uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("active_creature_vect");
 			ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
 			addr = addr + dwarfnum * 8;
@@ -40,8 +39,8 @@ void DFTool::DwarfEditor::ChangeMode(int _mode, int dwarfnum)
 			addr += 0x128;
 			ReadProcessMemory(hDF, (void*)addr, &addr, 4, NULL);
 			char temp[20];
-			sprintf(temp, "%d", (int)addr);
-			strcat(buf, temp);
+			sprintf_s(temp, 20, "%d", (int)addr);
+			strcat_s(buf, 120, temp);
 			DwarfList->Items->Add(gcnew String(buf));
 		}
 		else
@@ -219,14 +218,14 @@ void DFTool::DwarfEditor::DwarfListUpdate()
 	for (int i = 0; i < dwarfs; i++)
 	{
 		char buf[120];
-		strcpy(buf, "");
-		if (dwarfs < 10) sprintf(buf, "%d. ", i + 1);
-		else if (dwarfs < 100) sprintf(buf, "%2d. ", i + 1);
-		else if (dwarfs < 1000) sprintf(buf, "%3d. ", i + 1);
+		strcpy_s(buf, 120, "");
+		if (dwarfs < 10) sprintf_s(buf, 120, "%d. ", i + 1);
+		else if (dwarfs < 100) sprintf_s(buf, 120, "%2d. ", i + 1);
+		else if (dwarfs < 1000) sprintf_s(buf, 120, "%3d. ", i + 1);
 
-		mainform::GetFullName(buf, i, mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("creature_vect"));
+		mainform::GetFullName(buf, 120, i, mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("creature_vect"));
 
-		strcat(buf, " id:");
+		strcat_s(buf, 120, " id:");
 
 		uint64_t addr = mainform::GetDFStartAddr() + mainform::GetMemLayout()->GetAddrByName("creature_vect");
 		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
@@ -235,8 +234,8 @@ void DFTool::DwarfEditor::DwarfListUpdate()
 		addr += 0x128;
 		ReadProcessMemory(hDF, (void*)addr, &addr, 4, NULL);
 		char temp[20];
-		sprintf(temp, "%d", (int)addr);
-		strcat(buf, temp);
+		sprintf_s(temp, 20, "%d", (int)addr);
+		strcat_s(buf, 120, temp);
 		DwarfList->Items->Add(gcnew String(buf));
 	}
 }
@@ -342,7 +341,7 @@ System::Void DFTool::DwarfEditor::ApplyNameBtn_Click(System::Object ^ sender, Sy
 	fnameaddr += SelectedDwarf * 8;
 	ReadProcessMemory(hProcess, (void*)fnameaddr, &fnameaddr, 8, NULL);
 
-	uint8_t len = strlen(firstname);
+	size_t len = strlen(firstname);
 	uint8_t mode = 0x0F;
 	if (len < 16 && len>0) {
 		WriteProcessMemory(hProcess, (void*)fnameaddr, firstname, strlen(firstname) + 1, NULL);
@@ -404,7 +403,7 @@ System::Void DFTool::DwarfEditor::button20_Click(System::Object ^ sender, System
 
 	int orientation = 0;
 	for (int i = 0; i < 4; i++)
-		orientation += (o_Boxes[i]->Checked) ? 1 * Math::Pow(2, i) : 0;
+		orientation += (int)((o_Boxes[i]->Checked) ? 1 * Math::Pow(2, i) : 0);
 	orientation <<= 1;
 	WriteProcessMemory(hProcess, (void*)(stat_addr + 0x88), &orientation, 4, NULL);
 
