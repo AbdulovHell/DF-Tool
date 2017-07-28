@@ -73,8 +73,47 @@ namespace DFTool {
 	private: System::Windows::Forms::CheckBox^  SlaughtFlag;
 	private: System::Windows::Forms::Button^  EditCreatureBtn;
 	private: System::Windows::Forms::Button^  CancelJobBtn;
-	private: System::Windows::Forms::Button^  button2;
-	private: System::Windows::Forms::Button^  button1;
+	private: System::Windows::Forms::Button^  KillUnitBtn;
+	private: System::Windows::Forms::Button^  HealUnitBtn;
+
+
+	private: System::Windows::Forms::ToolStripStatusLabel^  infoLabel;
+	private: System::Windows::Forms::TextBox^  SPEdit;
+	private: System::Windows::Forms::TextBox^  APEdit;
+	private: System::Windows::Forms::Button^  SetAllSkillsAt5Btn;
+
+	private: System::Windows::Forms::ComboBox^  AllAttrSet;
+	private: System::Windows::Forms::Button^  SetSPBtn;
+	private: System::Windows::Forms::Button^  SetAPBtn;
+	private: System::Windows::Forms::ListBox^  RaceList;
+	private: System::Windows::Forms::NumericUpDown^  RaceValue;
+	private: System::Windows::Forms::Button^  SetRaceBtn;
+	private: System::Windows::Forms::GroupBox^  LocalCoordGrp;
+	private: System::Windows::Forms::Label^  label5;
+	private: System::Windows::Forms::Label^  label4;
+	private: System::Windows::Forms::Label^  label3;
+	private: System::Windows::Forms::Button^  SetCoordBtn;
+
+	private: System::Windows::Forms::NumericUpDown^  ZCoordEd;
+
+	private: System::Windows::Forms::NumericUpDown^  YCoordEd;
+
+	private: System::Windows::Forms::NumericUpDown^  XCoordEd;
+
+	private: System::Windows::Forms::Button^  CopyCoordBtn;
+	private: System::Windows::Forms::TextBox^  CurZCoord;
+
+	private: System::Windows::Forms::TextBox^  CurYCoord;
+
+	private: System::Windows::Forms::TextBox^  CurXCoord;
+	private: System::Windows::Forms::Button^  HealAdvBtn;
+	private: System::Windows::Forms::NumericUpDown^  SkipIntValue;
+	private: System::Windows::Forms::CheckBox^  SkipTurnCkh;
+	private: System::Windows::Forms::CheckBox^  IntsMaxSpdChk;
+	private: System::Windows::Forms::Timer^  DecSpam;
+	private: System::Windows::Forms::Button^  InvEditStartBtn;
+
+
 
 	private: System::Windows::Forms::OpenFileDialog^  openINI;
 	public:
@@ -124,10 +163,17 @@ namespace DFTool {
 		void InitDebugFunction();
 		int InitStartDwarf();
 		void UpdateSelectedUnitInfo();
+		int SetAttPoints(int num, bool mode);
+		int SetSkillPoints(int num, bool mode);
+		void UpdateCoordinates(bool mode, short X, short Y, short Z);
+		void HealUnit(int unit);
+		void UpdateSpeed();
+		String^ InHex(uint64_t addr);
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
 		ProgState progSt;
+		bool adv_first = true;
 		static MemoryLayout^ ml;
 		static HANDLE hDF;
 		static HWND hDFWnd;
@@ -159,8 +205,8 @@ namespace DFTool {
 				 this->OpenDwarfEditorBtn = (gcnew System::Windows::Forms::Button());
 				 this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
 				 this->groupBox2 = (gcnew System::Windows::Forms::GroupBox());
-				 this->button2 = (gcnew System::Windows::Forms::Button());
-				 this->button1 = (gcnew System::Windows::Forms::Button());
+				 this->KillUnitBtn = (gcnew System::Windows::Forms::Button());
+				 this->HealUnitBtn = (gcnew System::Windows::Forms::Button());
 				 this->CancelJobBtn = (gcnew System::Windows::Forms::Button());
 				 this->EditCreatureBtn = (gcnew System::Windows::Forms::Button());
 				 this->SlaughtFlag = (gcnew System::Windows::Forms::CheckBox());
@@ -175,22 +221,59 @@ namespace DFTool {
 				 this->SetAutumnBtn = (gcnew System::Windows::Forms::Button());
 				 this->SetSpringBtn = (gcnew System::Windows::Forms::Button());
 				 this->tabPage3 = (gcnew System::Windows::Forms::TabPage());
+				 this->RaceList = (gcnew System::Windows::Forms::ListBox());
+				 this->RaceValue = (gcnew System::Windows::Forms::NumericUpDown());
+				 this->SetRaceBtn = (gcnew System::Windows::Forms::Button());
+				 this->SPEdit = (gcnew System::Windows::Forms::TextBox());
+				 this->APEdit = (gcnew System::Windows::Forms::TextBox());
+				 this->SetAllSkillsAt5Btn = (gcnew System::Windows::Forms::Button());
+				 this->AllAttrSet = (gcnew System::Windows::Forms::ComboBox());
+				 this->SetSPBtn = (gcnew System::Windows::Forms::Button());
+				 this->SetAPBtn = (gcnew System::Windows::Forms::Button());
 				 this->tabPage4 = (gcnew System::Windows::Forms::TabPage());
+				 this->InvEditStartBtn = (gcnew System::Windows::Forms::Button());
+				 this->HealAdvBtn = (gcnew System::Windows::Forms::Button());
+				 this->SkipIntValue = (gcnew System::Windows::Forms::NumericUpDown());
+				 this->SkipTurnCkh = (gcnew System::Windows::Forms::CheckBox());
+				 this->IntsMaxSpdChk = (gcnew System::Windows::Forms::CheckBox());
+				 this->LocalCoordGrp = (gcnew System::Windows::Forms::GroupBox());
+				 this->label5 = (gcnew System::Windows::Forms::Label());
+				 this->label4 = (gcnew System::Windows::Forms::Label());
+				 this->label3 = (gcnew System::Windows::Forms::Label());
+				 this->SetCoordBtn = (gcnew System::Windows::Forms::Button());
+				 this->ZCoordEd = (gcnew System::Windows::Forms::NumericUpDown());
+				 this->YCoordEd = (gcnew System::Windows::Forms::NumericUpDown());
+				 this->XCoordEd = (gcnew System::Windows::Forms::NumericUpDown());
+				 this->CopyCoordBtn = (gcnew System::Windows::Forms::Button());
+				 this->CurZCoord = (gcnew System::Windows::Forms::TextBox());
+				 this->CurYCoord = (gcnew System::Windows::Forms::TextBox());
+				 this->CurXCoord = (gcnew System::Windows::Forms::TextBox());
 				 this->TimeWarpEnBtn = (gcnew System::Windows::Forms::Button());
 				 this->TimeWarpSetMultBtn = (gcnew System::Windows::Forms::Button());
 				 this->TimeWarpMultEd = (gcnew System::Windows::Forms::TextBox());
 				 this->TimeWarpControls = (gcnew System::Windows::Forms::GroupBox());
 				 this->statusStrip1 = (gcnew System::Windows::Forms::StatusStrip());
+				 this->infoLabel = (gcnew System::Windows::Forms::ToolStripStatusLabel());
 				 this->CheckStatTmr = (gcnew System::Windows::Forms::Timer(this->components));
 				 this->StartDwarfEd = (gcnew System::Windows::Forms::TextBox());
 				 this->SetStartDwarfBtn = (gcnew System::Windows::Forms::Button());
 				 this->label2 = (gcnew System::Windows::Forms::Label());
+				 this->DecSpam = (gcnew System::Windows::Forms::Timer(this->components));
 				 this->tabControl1->SuspendLayout();
 				 this->tabPage1->SuspendLayout();
 				 this->tabPage2->SuspendLayout();
 				 this->groupBox2->SuspendLayout();
 				 this->groupBox1->SuspendLayout();
+				 this->tabPage3->SuspendLayout();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->RaceValue))->BeginInit();
+				 this->tabPage4->SuspendLayout();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->SkipIntValue))->BeginInit();
+				 this->LocalCoordGrp->SuspendLayout();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ZCoordEd))->BeginInit();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->YCoordEd))->BeginInit();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->XCoordEd))->BeginInit();
 				 this->TimeWarpControls->SuspendLayout();
+				 this->statusStrip1->SuspendLayout();
 				 this->SuspendLayout();
 				 // 
 				 // CnctBtn
@@ -280,40 +363,42 @@ namespace DFTool {
 				 // 
 				 // groupBox2
 				 // 
-				 this->groupBox2->Controls->Add(this->button2);
-				 this->groupBox2->Controls->Add(this->button1);
+				 this->groupBox2->Controls->Add(this->KillUnitBtn);
+				 this->groupBox2->Controls->Add(this->HealUnitBtn);
 				 this->groupBox2->Controls->Add(this->CancelJobBtn);
 				 this->groupBox2->Controls->Add(this->EditCreatureBtn);
 				 this->groupBox2->Controls->Add(this->SlaughtFlag);
 				 this->groupBox2->Controls->Add(this->SelCreatureName);
 				 this->groupBox2->Location = System::Drawing::Point(6, 148);
 				 this->groupBox2->Name = L"groupBox2";
-				 this->groupBox2->Size = System::Drawing::Size(304, 124);
+				 this->groupBox2->Size = System::Drawing::Size(304, 78);
 				 this->groupBox2->TabIndex = 2;
 				 this->groupBox2->TabStop = false;
 				 this->groupBox2->Text = L"Selected creature in \'v\' mode";
 				 // 
-				 // button2
+				 // KillUnitBtn
 				 // 
-				 this->button2->Location = System::Drawing::Point(158, 68);
-				 this->button2->Name = L"button2";
-				 this->button2->Size = System::Drawing::Size(75, 23);
-				 this->button2->TabIndex = 5;
-				 this->button2->Text = L"Kill unit";
-				 this->button2->UseVisualStyleBackColor = true;
+				 this->KillUnitBtn->Location = System::Drawing::Point(223, 48);
+				 this->KillUnitBtn->Name = L"KillUnitBtn";
+				 this->KillUnitBtn->Size = System::Drawing::Size(75, 23);
+				 this->KillUnitBtn->TabIndex = 5;
+				 this->KillUnitBtn->Text = L"Kill unit";
+				 this->KillUnitBtn->UseVisualStyleBackColor = true;
+				 this->KillUnitBtn->Click += gcnew System::EventHandler(this, &mainform::KillUnitBtn_Click);
 				 // 
-				 // button1
+				 // HealUnitBtn
 				 // 
-				 this->button1->Location = System::Drawing::Point(158, 39);
-				 this->button1->Name = L"button1";
-				 this->button1->Size = System::Drawing::Size(75, 23);
-				 this->button1->TabIndex = 4;
-				 this->button1->Text = L"Heal unit";
-				 this->button1->UseVisualStyleBackColor = true;
+				 this->HealUnitBtn->Location = System::Drawing::Point(223, 19);
+				 this->HealUnitBtn->Name = L"HealUnitBtn";
+				 this->HealUnitBtn->Size = System::Drawing::Size(75, 23);
+				 this->HealUnitBtn->TabIndex = 4;
+				 this->HealUnitBtn->Text = L"Heal unit";
+				 this->HealUnitBtn->UseVisualStyleBackColor = true;
+				 this->HealUnitBtn->Click += gcnew System::EventHandler(this, &mainform::HealUnitBtn_Click);
 				 // 
 				 // CancelJobBtn
 				 // 
-				 this->CancelJobBtn->Location = System::Drawing::Point(9, 95);
+				 this->CancelJobBtn->Location = System::Drawing::Point(142, 48);
 				 this->CancelJobBtn->Name = L"CancelJobBtn";
 				 this->CancelJobBtn->Size = System::Drawing::Size(75, 23);
 				 this->CancelJobBtn->TabIndex = 3;
@@ -323,7 +408,7 @@ namespace DFTool {
 				 // 
 				 // EditCreatureBtn
 				 // 
-				 this->EditCreatureBtn->Location = System::Drawing::Point(9, 68);
+				 this->EditCreatureBtn->Location = System::Drawing::Point(142, 19);
 				 this->EditCreatureBtn->Name = L"EditCreatureBtn";
 				 this->EditCreatureBtn->Size = System::Drawing::Size(75, 23);
 				 this->EditCreatureBtn->TabIndex = 2;
@@ -345,7 +430,7 @@ namespace DFTool {
 				 // SelCreatureName
 				 // 
 				 this->SelCreatureName->AutoSize = true;
-				 this->SelCreatureName->Location = System::Drawing::Point(6, 29);
+				 this->SelCreatureName->Location = System::Drawing::Point(6, 24);
 				 this->SelCreatureName->Name = L"SelCreatureName";
 				 this->SelCreatureName->Size = System::Drawing::Size(75, 13);
 				 this->SelCreatureName->TabIndex = 0;
@@ -453,6 +538,15 @@ namespace DFTool {
 				 // 
 				 // tabPage3
 				 // 
+				 this->tabPage3->Controls->Add(this->RaceList);
+				 this->tabPage3->Controls->Add(this->RaceValue);
+				 this->tabPage3->Controls->Add(this->SetRaceBtn);
+				 this->tabPage3->Controls->Add(this->SPEdit);
+				 this->tabPage3->Controls->Add(this->APEdit);
+				 this->tabPage3->Controls->Add(this->SetAllSkillsAt5Btn);
+				 this->tabPage3->Controls->Add(this->AllAttrSet);
+				 this->tabPage3->Controls->Add(this->SetSPBtn);
+				 this->tabPage3->Controls->Add(this->SetAPBtn);
 				 this->tabPage3->Location = System::Drawing::Point(4, 22);
 				 this->tabPage3->Name = L"tabPage3";
 				 this->tabPage3->Size = System::Drawing::Size(316, 347);
@@ -460,14 +554,285 @@ namespace DFTool {
 				 this->tabPage3->Text = L"Creating Character";
 				 this->tabPage3->UseVisualStyleBackColor = true;
 				 // 
+				 // RaceList
+				 // 
+				 this->RaceList->FormattingEnabled = true;
+				 this->RaceList->Items->AddRange(gcnew cli::array< System::Object^  >(17) {
+					 L"572 - dwarf", L"573 - human", L"574 - elf", L"575 - goblin",
+						 L"576 - cobold", L"577 - gremlin", L"578 - troll", L"579 - ogre", L"580 - unicorn", L"581 - dragon", L"582 - satyr", L"583 - bronze colossus",
+						 L"584 - gigant", L"585 - cyclop", L"586 - ettin", L"587 - minotaur", L"588 - yeti"
+				 });
+				 this->RaceList->Location = System::Drawing::Point(190, 62);
+				 this->RaceList->Name = L"RaceList";
+				 this->RaceList->Size = System::Drawing::Size(120, 173);
+				 this->RaceList->TabIndex = 11;
+				 this->RaceList->SelectedIndexChanged += gcnew System::EventHandler(this, &mainform::RaceList_SelectedIndexChanged);
+				 // 
+				 // RaceValue
+				 // 
+				 this->RaceValue->Location = System::Drawing::Point(190, 35);
+				 this->RaceValue->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 832, 0, 0, 0 });
+				 this->RaceValue->Name = L"RaceValue";
+				 this->RaceValue->Size = System::Drawing::Size(120, 20);
+				 this->RaceValue->TabIndex = 10;
+				 this->RaceValue->ValueChanged += gcnew System::EventHandler(this, &mainform::RaceValue_ValueChanged);
+				 // 
+				 // SetRaceBtn
+				 // 
+				 this->SetRaceBtn->Location = System::Drawing::Point(190, 6);
+				 this->SetRaceBtn->Name = L"SetRaceBtn";
+				 this->SetRaceBtn->Size = System::Drawing::Size(120, 23);
+				 this->SetRaceBtn->TabIndex = 8;
+				 this->SetRaceBtn->Text = L"Set race";
+				 this->SetRaceBtn->UseVisualStyleBackColor = true;
+				 this->SetRaceBtn->Click += gcnew System::EventHandler(this, &mainform::SetRaceBtn_Click);
+				 // 
+				 // SPEdit
+				 // 
+				 this->SPEdit->Location = System::Drawing::Point(116, 34);
+				 this->SPEdit->Name = L"SPEdit";
+				 this->SPEdit->Size = System::Drawing::Size(67, 20);
+				 this->SPEdit->TabIndex = 7;
+				 // 
+				 // APEdit
+				 // 
+				 this->APEdit->Location = System::Drawing::Point(116, 6);
+				 this->APEdit->Name = L"APEdit";
+				 this->APEdit->Size = System::Drawing::Size(67, 20);
+				 this->APEdit->TabIndex = 6;
+				 // 
+				 // SetAllSkillsAt5Btn
+				 // 
+				 this->SetAllSkillsAt5Btn->Location = System::Drawing::Point(3, 87);
+				 this->SetAllSkillsAt5Btn->Name = L"SetAllSkillsAt5Btn";
+				 this->SetAllSkillsAt5Btn->Size = System::Drawing::Size(180, 23);
+				 this->SetAllSkillsAt5Btn->TabIndex = 5;
+				 this->SetAllSkillsAt5Btn->Text = L"Set all skills at L+5";
+				 this->SetAllSkillsAt5Btn->UseVisualStyleBackColor = true;
+				 this->SetAllSkillsAt5Btn->Click += gcnew System::EventHandler(this, &mainform::SetAllSkillsAt5Btn_Click);
+				 // 
+				 // AllAttrSet
+				 // 
+				 this->AllAttrSet->FormattingEnabled = true;
+				 this->AllAttrSet->Items->AddRange(gcnew cli::array< System::Object^  >(7) {
+					 L"Very Low", L"Low", L"Below", L"Average", L"Above Average",
+						 L"High", L"Superior"
+				 });
+				 this->AllAttrSet->Location = System::Drawing::Point(3, 60);
+				 this->AllAttrSet->Name = L"AllAttrSet";
+				 this->AllAttrSet->Size = System::Drawing::Size(180, 21);
+				 this->AllAttrSet->TabIndex = 3;
+				 this->AllAttrSet->SelectedIndexChanged += gcnew System::EventHandler(this, &mainform::AllAttrSet_SelectedIndexChanged);
+				 // 
+				 // SetSPBtn
+				 // 
+				 this->SetSPBtn->Location = System::Drawing::Point(3, 33);
+				 this->SetSPBtn->Name = L"SetSPBtn";
+				 this->SetSPBtn->Size = System::Drawing::Size(107, 21);
+				 this->SetSPBtn->TabIndex = 1;
+				 this->SetSPBtn->Text = L"Set Skill points";
+				 this->SetSPBtn->UseVisualStyleBackColor = true;
+				 this->SetSPBtn->Click += gcnew System::EventHandler(this, &mainform::SetSPBtn_Click);
+				 // 
+				 // SetAPBtn
+				 // 
+				 this->SetAPBtn->Location = System::Drawing::Point(3, 6);
+				 this->SetAPBtn->Name = L"SetAPBtn";
+				 this->SetAPBtn->Size = System::Drawing::Size(107, 21);
+				 this->SetAPBtn->TabIndex = 0;
+				 this->SetAPBtn->Text = L"Set Attribute points";
+				 this->SetAPBtn->UseVisualStyleBackColor = true;
+				 this->SetAPBtn->Click += gcnew System::EventHandler(this, &mainform::SetAPBtn_Click);
+				 // 
 				 // tabPage4
 				 // 
+				 this->tabPage4->Controls->Add(this->InvEditStartBtn);
+				 this->tabPage4->Controls->Add(this->HealAdvBtn);
+				 this->tabPage4->Controls->Add(this->SkipIntValue);
+				 this->tabPage4->Controls->Add(this->SkipTurnCkh);
+				 this->tabPage4->Controls->Add(this->IntsMaxSpdChk);
+				 this->tabPage4->Controls->Add(this->LocalCoordGrp);
 				 this->tabPage4->Location = System::Drawing::Point(4, 22);
 				 this->tabPage4->Name = L"tabPage4";
 				 this->tabPage4->Size = System::Drawing::Size(316, 347);
 				 this->tabPage4->TabIndex = 3;
 				 this->tabPage4->Text = L"Adventurer";
 				 this->tabPage4->UseVisualStyleBackColor = true;
+				 // 
+				 // InvEditStartBtn
+				 // 
+				 this->InvEditStartBtn->Location = System::Drawing::Point(92, 172);
+				 this->InvEditStartBtn->Name = L"InvEditStartBtn";
+				 this->InvEditStartBtn->Size = System::Drawing::Size(95, 23);
+				 this->InvEditStartBtn->TabIndex = 5;
+				 this->InvEditStartBtn->Text = L"Inventory Editor";
+				 this->InvEditStartBtn->UseVisualStyleBackColor = true;
+				 this->InvEditStartBtn->Click += gcnew System::EventHandler(this, &mainform::InvEditStartBtn_Click);
+				 // 
+				 // HealAdvBtn
+				 // 
+				 this->HealAdvBtn->Location = System::Drawing::Point(7, 172);
+				 this->HealAdvBtn->Name = L"HealAdvBtn";
+				 this->HealAdvBtn->Size = System::Drawing::Size(75, 23);
+				 this->HealAdvBtn->TabIndex = 4;
+				 this->HealAdvBtn->Text = L"Heal";
+				 this->HealAdvBtn->UseVisualStyleBackColor = true;
+				 this->HealAdvBtn->Click += gcnew System::EventHandler(this, &mainform::HealAdvBtn_Click);
+				 // 
+				 // SkipIntValue
+				 // 
+				 this->SkipIntValue->Location = System::Drawing::Point(131, 139);
+				 this->SkipIntValue->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10000, 0, 0, 0 });
+				 this->SkipIntValue->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
+				 this->SkipIntValue->Name = L"SkipIntValue";
+				 this->SkipIntValue->Size = System::Drawing::Size(79, 20);
+				 this->SkipIntValue->TabIndex = 3;
+				 this->SkipIntValue->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
+				 // 
+				 // SkipTurnCkh
+				 // 
+				 this->SkipTurnCkh->AutoSize = true;
+				 this->SkipTurnCkh->Location = System::Drawing::Point(3, 140);
+				 this->SkipTurnCkh->Name = L"SkipTurnCkh";
+				 this->SkipTurnCkh->Size = System::Drawing::Size(131, 17);
+				 this->SkipTurnCkh->TabIndex = 2;
+				 this->SkipTurnCkh->Text = L"Skip turn. Interval, ms:";
+				 this->SkipTurnCkh->UseVisualStyleBackColor = true;
+				 this->SkipTurnCkh->CheckedChanged += gcnew System::EventHandler(this, &mainform::SkipTurnCkh_CheckedChanged);
+				 // 
+				 // IntsMaxSpdChk
+				 // 
+				 this->IntsMaxSpdChk->AutoSize = true;
+				 this->IntsMaxSpdChk->Location = System::Drawing::Point(3, 110);
+				 this->IntsMaxSpdChk->Name = L"IntsMaxSpdChk";
+				 this->IntsMaxSpdChk->Size = System::Drawing::Size(149, 17);
+				 this->IntsMaxSpdChk->TabIndex = 1;
+				 this->IntsMaxSpdChk->Text = L"Instant max moving speed";
+				 this->IntsMaxSpdChk->UseVisualStyleBackColor = true;
+				 // 
+				 // LocalCoordGrp
+				 // 
+				 this->LocalCoordGrp->Controls->Add(this->label5);
+				 this->LocalCoordGrp->Controls->Add(this->label4);
+				 this->LocalCoordGrp->Controls->Add(this->label3);
+				 this->LocalCoordGrp->Controls->Add(this->SetCoordBtn);
+				 this->LocalCoordGrp->Controls->Add(this->ZCoordEd);
+				 this->LocalCoordGrp->Controls->Add(this->YCoordEd);
+				 this->LocalCoordGrp->Controls->Add(this->XCoordEd);
+				 this->LocalCoordGrp->Controls->Add(this->CopyCoordBtn);
+				 this->LocalCoordGrp->Controls->Add(this->CurZCoord);
+				 this->LocalCoordGrp->Controls->Add(this->CurYCoord);
+				 this->LocalCoordGrp->Controls->Add(this->CurXCoord);
+				 this->LocalCoordGrp->Location = System::Drawing::Point(3, 3);
+				 this->LocalCoordGrp->Name = L"LocalCoordGrp";
+				 this->LocalCoordGrp->Size = System::Drawing::Size(310, 98);
+				 this->LocalCoordGrp->TabIndex = 0;
+				 this->LocalCoordGrp->TabStop = false;
+				 this->LocalCoordGrp->Text = L"Local coordinates";
+				 // 
+				 // label5
+				 // 
+				 this->label5->AutoSize = true;
+				 this->label5->Location = System::Drawing::Point(185, 21);
+				 this->label5->Name = L"label5";
+				 this->label5->Size = System::Drawing::Size(14, 13);
+				 this->label5->TabIndex = 4;
+				 this->label5->Text = L"Z";
+				 // 
+				 // label4
+				 // 
+				 this->label4->AutoSize = true;
+				 this->label4->Location = System::Drawing::Point(125, 21);
+				 this->label4->Name = L"label4";
+				 this->label4->Size = System::Drawing::Size(14, 13);
+				 this->label4->TabIndex = 4;
+				 this->label4->Text = L"Y";
+				 // 
+				 // label3
+				 // 
+				 this->label3->AutoSize = true;
+				 this->label3->Location = System::Drawing::Point(65, 21);
+				 this->label3->Name = L"label3";
+				 this->label3->Size = System::Drawing::Size(14, 13);
+				 this->label3->TabIndex = 4;
+				 this->label3->Text = L"X";
+				 // 
+				 // SetCoordBtn
+				 // 
+				 this->SetCoordBtn->Location = System::Drawing::Point(225, 63);
+				 this->SetCoordBtn->Name = L"SetCoordBtn";
+				 this->SetCoordBtn->Size = System::Drawing::Size(47, 20);
+				 this->SetCoordBtn->TabIndex = 3;
+				 this->SetCoordBtn->Text = L"set";
+				 this->SetCoordBtn->UseVisualStyleBackColor = true;
+				 this->SetCoordBtn->Click += gcnew System::EventHandler(this, &mainform::SetCoordBtn_Click);
+				 // 
+				 // ZCoordEd
+				 // 
+				 this->ZCoordEd->Location = System::Drawing::Point(165, 63);
+				 this->ZCoordEd->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1000, 0, 0, 0 });
+				 this->ZCoordEd->Name = L"ZCoordEd";
+				 this->ZCoordEd->Size = System::Drawing::Size(54, 20);
+				 this->ZCoordEd->TabIndex = 2;
+				 // 
+				 // YCoordEd
+				 // 
+				 this->YCoordEd->Location = System::Drawing::Point(105, 63);
+				 this->YCoordEd->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1000, 0, 0, 0 });
+				 this->YCoordEd->Name = L"YCoordEd";
+				 this->YCoordEd->Size = System::Drawing::Size(54, 20);
+				 this->YCoordEd->TabIndex = 2;
+				 // 
+				 // XCoordEd
+				 // 
+				 this->XCoordEd->Location = System::Drawing::Point(45, 63);
+				 this->XCoordEd->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1000, 0, 0, 0 });
+				 this->XCoordEd->Name = L"XCoordEd";
+				 this->XCoordEd->Size = System::Drawing::Size(54, 20);
+				 this->XCoordEd->TabIndex = 2;
+				 // 
+				 // CopyCoordBtn
+				 // 
+				 this->CopyCoordBtn->Location = System::Drawing::Point(225, 37);
+				 this->CopyCoordBtn->Name = L"CopyCoordBtn";
+				 this->CopyCoordBtn->Size = System::Drawing::Size(47, 21);
+				 this->CopyCoordBtn->TabIndex = 1;
+				 this->CopyCoordBtn->Text = L"copy";
+				 this->CopyCoordBtn->UseVisualStyleBackColor = true;
+				 this->CopyCoordBtn->Click += gcnew System::EventHandler(this, &mainform::CopyCoordBtn_Click);
+				 // 
+				 // CurZCoord
+				 // 
+				 this->CurZCoord->Location = System::Drawing::Point(165, 37);
+				 this->CurZCoord->Name = L"CurZCoord";
+				 this->CurZCoord->ReadOnly = true;
+				 this->CurZCoord->Size = System::Drawing::Size(54, 20);
+				 this->CurZCoord->TabIndex = 0;
+				 this->CurZCoord->Text = L"0";
+				 this->CurZCoord->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
+				 this->CurZCoord->Click += gcnew System::EventHandler(this, &mainform::CurZCoord_Click);
+				 // 
+				 // CurYCoord
+				 // 
+				 this->CurYCoord->Location = System::Drawing::Point(105, 37);
+				 this->CurYCoord->Name = L"CurYCoord";
+				 this->CurYCoord->ReadOnly = true;
+				 this->CurYCoord->Size = System::Drawing::Size(54, 20);
+				 this->CurYCoord->TabIndex = 0;
+				 this->CurYCoord->Text = L"0";
+				 this->CurYCoord->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
+				 this->CurYCoord->Click += gcnew System::EventHandler(this, &mainform::CurYCoord_Click);
+				 // 
+				 // CurXCoord
+				 // 
+				 this->CurXCoord->Location = System::Drawing::Point(45, 37);
+				 this->CurXCoord->Name = L"CurXCoord";
+				 this->CurXCoord->ReadOnly = true;
+				 this->CurXCoord->Size = System::Drawing::Size(54, 20);
+				 this->CurXCoord->TabIndex = 0;
+				 this->CurXCoord->Text = L"0";
+				 this->CurXCoord->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
+				 this->CurXCoord->Click += gcnew System::EventHandler(this, &mainform::CurXCoord_Click);
 				 // 
 				 // TimeWarpEnBtn
 				 // 
@@ -513,12 +878,18 @@ namespace DFTool {
 				 // 
 				 // statusStrip1
 				 // 
+				 this->statusStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->infoLabel });
 				 this->statusStrip1->Location = System::Drawing::Point(0, 498);
 				 this->statusStrip1->Name = L"statusStrip1";
 				 this->statusStrip1->Size = System::Drawing::Size(343, 22);
 				 this->statusStrip1->SizingGrip = false;
 				 this->statusStrip1->TabIndex = 6;
 				 this->statusStrip1->Text = L"statusStrip1";
+				 // 
+				 // infoLabel
+				 // 
+				 this->infoLabel->Name = L"infoLabel";
+				 this->infoLabel->Size = System::Drawing::Size(0, 17);
 				 // 
 				 // CheckStatTmr
 				 // 
@@ -551,6 +922,11 @@ namespace DFTool {
 				 this->label2->TabIndex = 9;
 				 this->label2->Text = L"Start Dwarf count";
 				 // 
+				 // DecSpam
+				 // 
+				 this->DecSpam->Interval = 1;
+				 this->DecSpam->Tick += gcnew System::EventHandler(this, &mainform::DecSpam_Tick);
+				 // 
 				 // mainform
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -575,8 +951,21 @@ namespace DFTool {
 				 this->groupBox2->ResumeLayout(false);
 				 this->groupBox2->PerformLayout();
 				 this->groupBox1->ResumeLayout(false);
+				 this->tabPage3->ResumeLayout(false);
+				 this->tabPage3->PerformLayout();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->RaceValue))->EndInit();
+				 this->tabPage4->ResumeLayout(false);
+				 this->tabPage4->PerformLayout();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->SkipIntValue))->EndInit();
+				 this->LocalCoordGrp->ResumeLayout(false);
+				 this->LocalCoordGrp->PerformLayout();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ZCoordEd))->EndInit();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->YCoordEd))->EndInit();
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->XCoordEd))->EndInit();
 				 this->TimeWarpControls->ResumeLayout(false);
 				 this->TimeWarpControls->PerformLayout();
+				 this->statusStrip1->ResumeLayout(false);
+				 this->statusStrip1->PerformLayout();
 				 this->ResumeLayout(false);
 				 this->PerformLayout();
 
@@ -601,5 +990,23 @@ namespace DFTool {
 	private: System::Void EditCreatureBtn_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void SlaughtFlag_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void CancelJobBtn_Click(System::Object^  sender, System::EventArgs^  e);
-};
+	private: System::Void KillUnitBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void HealUnitBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SetAPBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SetSPBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void AllAttrSet_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SetAllSkillsAt5Btn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SetRaceBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void RaceValue_ValueChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void RaceList_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void CopyCoordBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SetCoordBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void CurXCoord_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void CurYCoord_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void CurZCoord_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void HealAdvBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SkipTurnCkh_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void DecSpam_Tick(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void InvEditStartBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	};
 }

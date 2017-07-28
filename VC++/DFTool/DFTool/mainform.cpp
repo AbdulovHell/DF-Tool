@@ -1,8 +1,8 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
-#include <fstream>
+﻿#include <fstream>
 #include <Windows.h>
 #include <Psapi.h>
 #include "DwarfEditor.h"
+#include "InventoryEditor.h"
 #include "mainform.h"
 
 using namespace System;
@@ -135,7 +135,7 @@ void DFTool::mainform::OpenDF()
 								DFStartAddr = (uint64_t)modinfo.lpBaseOfDll;
 								hDF = hProcess;
 								hDFWnd = FindWindow(L"SDL_app", L"Dwarf Fortress");
-
+								infoLabel->Text = "Base addr: 0x" + InHex(DFStartAddr) + " Handle: 0x" + InHex((uint64_t)hDF);
 								PauseStateAddr = DFStartAddr + ml->GetAddrByName("pause");
 								SeasonAddr = DFStartAddr + ml->GetAddrByName("season");
 								SeasonTickAddr = DFStartAddr + ml->GetAddrByName("season_tick");
@@ -284,8 +284,185 @@ void DFTool::mainform::UpdateSelectedUnitInfo()
 	SelCreatureName->Text = gcnew String(buf);
 }
 
+int DFTool::mainform::SetAttPoints(int num, bool mode)
+{
+	if (mode) {	//set
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		WriteProcessMemory(hDF, (void*)(addr + 0x724), &num, 4, NULL);
+		return num;
+	}
+	else {	//get
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		ReadProcessMemory(hDF, (void*)(addr + 0x724), &num, 4, NULL);
+		return num;
+	}
+}
+
+int DFTool::mainform::SetSkillPoints(int num, bool mode)
+{
+	if (mode) {	//set
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		WriteProcessMemory(hDF, (void*)(addr + 0x744), &num, 4, NULL);
+		return num;
+	}
+	else {	//get
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		ReadProcessMemory(hDF, (void*)(addr + 0x744), &num, 4, NULL);
+		return num;
+	}
+}
+
+void DFTool::mainform::UpdateCoordinates(bool mode, short X, short Y, short Z)
+{
+	if (mode) {	//set
+		short coords[3] = { X,Y,Z };
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		WriteProcessMemory(hDF, (void*)(addr + 0xA0), coords, 6, NULL);
+	}
+	else {	//get
+		short coords[3] = { 0,0,0 };
+		uint64_t addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+		ReadProcessMemory(hDF, (void*)(addr + 0xA0), coords, 6, NULL);
+		CurXCoord->Text = coords[0].ToString();
+		CurYCoord->Text = coords[1].ToString();
+		CurZCoord->Text = coords[2].ToString();
+	}
+}
+
+void DFTool::mainform::HealUnit(int unit)
+{
+	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+	offset_addr += unit * 8;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+
+	//refilling blood
+	uint32_t bc = 0;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x1D4), &bc, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x1D8), &bc, 4, NULL);
+	//resetting grasp,stand,fly status
+	uint16_t s2 = 0;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0xBC0 + 0), &s2, 2, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0xBC0 + 0x2), &s2, 2, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0xBC0 + 0x4), &s2, 2, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0xBC0 + 0x6), &s2, 2, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0xBC0 + 0x8), &s2, 2, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0xBC0 + 0xA), &s2, 2, NULL);
+	//status flags
+	uint32_t flags = 0;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x10C), &flags, 4, NULL);
+	flags |= 0x10;	//calc nerv
+	flags |= 0x20;	//calc bp
+	flags &= 0xFFFFDFFF;	//has breaks
+	flags &= 0xFFFFBFFF;	//gutted
+	flags &= 0xFFFF7FFF;	//circ spray
+	flags &= 0xFFFDFFFF;	//calc insulation
+	flags |= 0x2000000;	//vision good
+	flags &= 0xFBFFFFFF;	//vision damaged
+	flags &= 0xF7FFFFFF;	//vision missing
+	flags |= 0x10000000;	//breathing good
+	flags &= 0xDFFFFFFF;	//breathing problem
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x10C), &flags, 4, NULL);
+
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x110), &flags, 4, NULL);
+	flags &= 0xFFFFEFFF;	//comp health
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x110), &flags, 4, NULL);
+	//counters	7C4
+	uint16_t counter2b = 0;
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x14), &counter2b, 2, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x16), &counter2b, 2, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x18), &counter2b, 2, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x1C), &counter2b, 2, NULL);
+	uint32_t counter4b = 0;
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x30), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x34), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x7C4 + 0x38), &counter4b, 4, NULL);
+	//counters2 950
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0x0), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0x8), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0xC), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0x10), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0x14), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0x18), &counter4b, 4, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x950 + 0x24), &counter4b, 4, NULL);
+	//wounds
+	uint64_t vect_start = NULL;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0xC0), &vect_start, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0xC8), &vect_start, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0xD0), &vect_start, 8, NULL);
+	uint32_t wound_next_id = 1;
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0xD8), &wound_next_id, 4, NULL);
+	//body part status
+	uint64_t nr_sta, nr_end;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x30), &nr_sta, 8, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x38), &nr_end, 8, NULL);
+	size_t len = (nr_end - nr_sta) / 4;
+	uint32_t fluid = 100;
+	for (size_t i = 0; i < len; i++) {
+		WriteProcessMemory(hDF, (void*)(nr_sta + i * 8), &fluid, 4, NULL);
+	}
+
+	uint32_t prcnt = 0;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x48), &nr_sta, 8, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x50), &nr_end, 8, NULL);
+	len = (nr_end - nr_sta) / 4;
+	uint64_t wa, cf, df, ef;
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x60), &wa, 8, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x78), &cf, 8, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x90), &df, 8, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0xA8), &ef, 8, NULL);
+	for (size_t i = 0; i < len; i++) {
+		WriteProcessMemory(hDF, (void*)(nr_sta + i * 8), &prcnt, 4, NULL);
+		WriteProcessMemory(hDF, (void*)(wa + i * 8), &prcnt, 4, NULL);
+		WriteProcessMemory(hDF, (void*)(cf + i * 8), &prcnt, 4, NULL);
+		WriteProcessMemory(hDF, (void*)(df + i * 8), &prcnt, 4, NULL);
+		WriteProcessMemory(hDF, (void*)(ef + i * 8), &prcnt, 4, NULL);
+	}
+
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x0), &nr_sta, 8, NULL);
+	ReadProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x0 + 0x8), &nr_end, 8, NULL);
+	len = (nr_end - nr_sta) / 4;
+	for (size_t i = 0; i < len; i++) {
+		WriteProcessMemory(hDF, (void*)(nr_sta + i * 8), &prcnt, 4, NULL);
+	}
+}
+
+void DFTool::mainform::UpdateSpeed()
+{
+	short spd = 10;
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(addr + 0x49C), &spd, 2, NULL);
+}
+
+String ^ DFTool::mainform::InHex(uint64_t addr)
+{
+	char* buf = new char[20];
+	sprintf_s(buf, 20, "%I64X", addr);
+	String^ str = gcnew String(buf);
+	delete[] buf;
+	return str;
+}
+
 System::Void DFTool::mainform::mainform_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
+	TimeWarpControls->Enabled = false;
+	StartDwarfEd->Enabled = false;
+	SetStartDwarfBtn->Enabled = false;
+	tabControl1->TabPages[0]->Enabled = false;
+	tabControl1->TabPages[1]->Enabled = false;
+	tabControl1->TabPages[2]->Enabled = false;
+	tabControl1->TabPages[3]->Enabled = false;
 	openINI->ShowDialog();
 	ml = gcnew MemoryLayout((char*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(openINI->FileName));
 	//ml->isLoaded();
@@ -296,8 +473,6 @@ System::Void DFTool::mainform::TimeWarpSetMultBtn_Click(System::Object ^ sender,
 	UInt32 mult;
 	if (System::UInt32::TryParse(TimeWarpMultEd->Text, mult))
 		WriteProcessMemory(hDF, (void*)TimeWarpMultAddr, &mult, 4, NULL);
-	else
-		;	//TODO: err
 }
 
 System::Void DFTool::mainform::TimeWarpEnBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -321,7 +496,7 @@ System::Void DFTool::mainform::SetEmbarkPtBtn_Click(System::Object ^ sender, Sys
 	Int32 count = -1;
 
 	if (!Int32::TryParse(EmbarkPointsEd->Text, count)) {
-		//TODO: err
+		//bad input
 		return;
 	}
 
@@ -349,42 +524,64 @@ System::Void DFTool::mainform::CheckStatTmr_Tick(System::Object ^ sender, System
 	}
 	switch (progSt) {
 	case ProgState::STATE_MAIN:
-
+		TimeWarpControls->Enabled = true;
+		StartDwarfEd->Enabled = true;
+		SetStartDwarfBtn->Enabled = true;
+		tabControl1->TabPages[0]->Enabled = false;
+		tabControl1->TabPages[1]->Enabled = false;
+		tabControl1->TabPages[2]->Enabled = false;
+		tabControl1->TabPages[3]->Enabled = false;
 		break;
 	case ProgState::STATE_FORT:
-
+		tabControl1->TabPages[0]->Enabled = true;
+		tabControl1->TabPages[1]->Enabled = true;
+		tabControl1->TabPages[2]->Enabled = false;
+		tabControl1->TabPages[3]->Enabled = false;
 		UpdateSelectedUnitInfo();
 		break;
 	case ProgState::STATE_ADV:
-		/*
+		tabControl1->TabPages[0]->Enabled = false;
+		tabControl1->TabPages[1]->Enabled = false;
+		tabControl1->TabPages[2]->Enabled = true;
+		tabControl1->TabPages[3]->Enabled = true;
 		if (adv_first) {
-			AttPoints(NULL, false);
-			SkillPoints(NULL, false);
+			SetAttPoints(NULL, false);
+			SetSkillPoints(NULL, false);
 			short race = NULL;
-			__int64 addrR = StartAddr + get_addr_by_name("main");
-			ReadProcessMemory(hProcess, (void*)addrR, &addrR, 8, NULL);
-			addrR += 0xB8;
-			ReadProcessMemory(hProcess, (void*)addrR, &race, 2, NULL);
-			Edit7->Text = IntToStr(race);
+			uint64_t addrR = DFStartAddr + ml->GetAddrByName("main");
+			ReadProcessMemory(hDF, (void*)addrR, &addrR, 8, NULL);
+			ReadProcessMemory(hDF, (void*)(addrR + 0xB8), &race, 2, NULL);
+			if (race < 0 || race>832) race = 572;
+			this->RaceValue->Value = race;
 			adv_first = false;
 		}
 
-		update_coords(false, NULL, NULL, NULL);
+		UpdateCoordinates(false, NULL, NULL, NULL);
 
-		if (MaxSpeed)
-			update_speed();
-		*/
+		if (this->IntsMaxSpdChk->Checked)
+			UpdateSpeed();
+
 		break;
 	case ProgState::STATE_START:
-		//Button10->Enabled = !timewarpON;
-		//Button32->Enabled = true;
-		//PrintSetup1->Enabled = true;
-		//Button1->Enabled = false;
+		TimeWarpControls->Enabled = true;
+		StartDwarfEd->Enabled = true;
+		SetStartDwarfBtn->Enabled = true;
+		tabControl1->TabPages[0]->Enabled = false;
+		tabControl1->TabPages[1]->Enabled = false;
+		tabControl1->TabPages[2]->Enabled = false;
+		tabControl1->TabPages[3]->Enabled = false;
 		progSt = ProgState::STATE_IDLE;
-
 		break;
 	case ProgState::STATE_DISCON:
-
+		TimeWarpControls->Enabled = false;
+		StartDwarfEd->Enabled = false;
+		SetStartDwarfBtn->Enabled = false;
+		tabControl1->TabPages[0]->Enabled = false;
+		tabControl1->TabPages[1]->Enabled = false;
+		tabControl1->TabPages[2]->Enabled = false;
+		tabControl1->TabPages[3]->Enabled = false;
+		adv_first = false;
+		infoLabel->Text = "";
 		break;
 	default:
 		break;
@@ -443,7 +640,7 @@ System::Void DFTool::mainform::SetStartDwarfBtn_Click(System::Object ^ sender, S
 {
 	Int32 count = 7;
 	if (!int::TryParse(StartDwarfEd->Text, count)) {
-		return;	//err
+		return;	//bad input
 	}
 	if ((count > 1) && (count < 2147483646)) {
 		uint64_t addr = DFStartAddr + ml->GetAddrByName("start_dwarf");
@@ -487,7 +684,7 @@ System::Void DFTool::mainform::CancelJobBtn_Click(System::Object ^ sender, Syste
 {
 	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
 	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
-	int num;
+	uint32_t num;
 
 	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
 
@@ -501,6 +698,147 @@ System::Void DFTool::mainform::CancelJobBtn_Click(System::Object ^ sender, Syste
 	// ReadProcessMemory(hProcess,(void*)job,&job,4,NULL);
 	uint64_t current_job = 0;
 	WriteProcessMemory(hDF, (void*)job, &current_job, 8, NULL);
+}
+
+System::Void DFTool::mainform::KillUnitBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	uint64_t offset_addr = DFStartAddr + ml->GetAddrByName("active_creature_vect");
+	uint32_t num;
+
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+	offset_addr += num * 8;
+	ReadProcessMemory(hDF, (void*)offset_addr, &offset_addr, 8, NULL);
+
+	uint32_t vc = 2;
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x310 + 0x1C), &vc, 4, NULL);
+
+	uint32_t bc = 0;
+	WriteProcessMemory(hDF, (void*)(offset_addr + 0x4C8 + 0x1D8), &bc, 4, NULL);
+}
+
+System::Void DFTool::mainform::HealUnitBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	uint32_t num;
+
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	HealUnit(num);
+}
+
+System::Void DFTool::mainform::SetAPBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	int AP = 0;
+	if (int::TryParse(this->APEdit->Text, AP))
+		SetAttPoints(AP, true);
+}
+
+System::Void DFTool::mainform::SetSPBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	int SP = 0;
+	if (int::TryParse(this->SPEdit->Text, SP))
+		SetSkillPoints(SP, true);
+}
+
+System::Void DFTool::mainform::AllAttrSet_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (AllAttrSet->SelectedIndex < 0 && AllAttrSet->SelectedIndex > 6) return;
+	uint32_t stat[19];
+	for (int i = 0; i < 19; i++)
+		stat[i] = AllAttrSet->SelectedIndex;
+
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(addr + 0x2F8), stat, 4 * 19, NULL);
+}
+
+System::Void DFTool::mainform::SetAllSkillsAt5Btn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	int stat[128];
+	for (int i = 0; i < 128; i++)
+		stat[i] = 20;
+
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(addr + 0xBC), stat, 4 * 128, NULL);
+}
+
+System::Void DFTool::mainform::SetRaceBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint16_t race = Decimal::ToUInt16(RaceValue->Value);
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(addr + 0xB8), &race, 2, NULL);
+}
+
+System::Void DFTool::mainform::RaceValue_ValueChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint16_t race = Decimal::ToUInt16(RaceValue->Value);
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(addr + 0xB8), &race, 2, NULL);
+}
+
+System::Void DFTool::mainform::RaceList_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	RaceValue->Value = 572 + RaceList->SelectedIndex;
+	uint16_t race = Decimal::ToUInt16(RaceValue->Value);
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("main");
+	ReadProcessMemory(hDF, (void*)addr, &addr, 8, NULL);
+	WriteProcessMemory(hDF, (void*)(addr + 0xB8), &race, 2, NULL);
+}
+
+System::Void DFTool::mainform::CopyCoordBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	XCoordEd->Value = int::Parse(CurXCoord->Text);
+	YCoordEd->Value = int::Parse(CurYCoord->Text);
+	ZCoordEd->Value = int::Parse(CurZCoord->Text);
+}
+
+System::Void DFTool::mainform::SetCoordBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	UpdateCoordinates(true, Decimal::ToUInt16(XCoordEd->Value), Decimal::ToUInt16(YCoordEd->Value), Decimal::ToUInt16(ZCoordEd->Value));
+}
+
+System::Void DFTool::mainform::CurXCoord_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	XCoordEd->Value = int::Parse(CurXCoord->Text);
+}
+
+System::Void DFTool::mainform::CurYCoord_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	YCoordEd->Value = int::Parse(CurYCoord->Text);
+}
+
+System::Void DFTool::mainform::CurZCoord_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	ZCoordEd->Value = int::Parse(CurZCoord->Text);
+}
+
+System::Void DFTool::mainform::HealAdvBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	HealUnit(0);
+}
+
+System::Void DFTool::mainform::SkipTurnCkh_CheckedChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	DecSpam->Enabled = SkipTurnCkh->Checked;
+}
+
+System::Void DFTool::mainform::DecSpam_Tick(System::Object ^ sender, System::EventArgs ^ e)
+{
+	DecSpam->Interval = Decimal::ToInt32(SkipIntValue->Value);
+
+	PostMessage(hDFWnd, WM_KEYDOWN, 0x6E, 0x00530001);
+	Sleep(1);
+	PostMessage(hDFWnd, WM_KEYUP, 0x6E, 0xC0530001);
+}
+
+System::Void DFTool::mainform::InvEditStartBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	InventoryEditor^ InvEdit = gcnew InventoryEditor(0);
+	InvEdit->Show();
 }
 
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)
