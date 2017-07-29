@@ -841,6 +841,15 @@ System::Void DFTool::mainform::InvEditStartBtn_Click(System::Object ^ sender, Sy
 	InvEdit->Show();
 }
 
+System::Void DFTool::mainform::FortInvEditBtn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t num_addr = DFStartAddr + ml->GetAddrByName("selected_unit");
+	int num;
+	ReadProcessMemory(hDF, (void*)num_addr, &num, 4, NULL);
+	InventoryEditor^ InvEdit = gcnew InventoryEditor(num);
+	InvEdit->Show();
+}
+
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)
 {
 	struct stat fi;

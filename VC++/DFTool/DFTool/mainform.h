@@ -109,6 +109,7 @@ namespace DFTool {
 	private: System::Windows::Forms::CheckBox^  IntsMaxSpdChk;
 	private: System::Windows::Forms::Timer^  DecSpam;
 	private: System::Windows::Forms::Button^  InvEditStartBtn;
+	private: System::Windows::Forms::Button^  FortInvEditBtn;
 
 
 
@@ -256,6 +257,7 @@ namespace DFTool {
 				 this->SetStartDwarfBtn = (gcnew System::Windows::Forms::Button());
 				 this->label2 = (gcnew System::Windows::Forms::Label());
 				 this->DecSpam = (gcnew System::Windows::Forms::Timer(this->components));
+				 this->FortInvEditBtn = (gcnew System::Windows::Forms::Button());
 				 this->tabControl1->SuspendLayout();
 				 this->tabPage1->SuspendLayout();
 				 this->tabPage2->SuspendLayout();
@@ -365,6 +367,7 @@ namespace DFTool {
 				 // 
 				 // groupBox2
 				 // 
+				 this->groupBox2->Controls->Add(this->FortInvEditBtn);
 				 this->groupBox2->Controls->Add(this->KillUnitBtn);
 				 this->groupBox2->Controls->Add(this->HealUnitBtn);
 				 this->groupBox2->Controls->Add(this->CancelJobBtn);
@@ -373,7 +376,7 @@ namespace DFTool {
 				 this->groupBox2->Controls->Add(this->SelCreatureName);
 				 this->groupBox2->Location = System::Drawing::Point(6, 148);
 				 this->groupBox2->Name = L"groupBox2";
-				 this->groupBox2->Size = System::Drawing::Size(304, 78);
+				 this->groupBox2->Size = System::Drawing::Size(304, 112);
 				 this->groupBox2->TabIndex = 2;
 				 this->groupBox2->TabStop = false;
 				 this->groupBox2->Text = L"Selected creature in \'v\' mode";
@@ -929,6 +932,16 @@ namespace DFTool {
 				 this->DecSpam->Interval = 1;
 				 this->DecSpam->Tick += gcnew System::EventHandler(this, &mainform::DecSpam_Tick);
 				 // 
+				 // FortInvEditBtn
+				 // 
+				 this->FortInvEditBtn->Location = System::Drawing::Point(142, 77);
+				 this->FortInvEditBtn->Name = L"FortInvEditBtn";
+				 this->FortInvEditBtn->Size = System::Drawing::Size(156, 23);
+				 this->FortInvEditBtn->TabIndex = 6;
+				 this->FortInvEditBtn->Text = L"Inventory editor";
+				 this->FortInvEditBtn->UseVisualStyleBackColor = true;
+				 this->FortInvEditBtn->Click += gcnew System::EventHandler(this, &mainform::FortInvEditBtn_Click);
+				 // 
 				 // mainform
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -1010,5 +1023,6 @@ namespace DFTool {
 	private: System::Void SkipTurnCkh_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void DecSpam_Tick(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void InvEditStartBtn_Click(System::Object^  sender, System::EventArgs^  e);
-	};
+	private: System::Void FortInvEditBtn_Click(System::Object^  sender, System::EventArgs^  e);
+};
 }
