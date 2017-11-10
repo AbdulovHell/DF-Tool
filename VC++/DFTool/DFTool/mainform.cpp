@@ -850,6 +850,14 @@ System::Void DFTool::mainform::FortInvEditBtn_Click(System::Object ^ sender, Sys
 	InvEdit->Show();
 }
 
+System::Void DFTool::mainform::EmbEvrChk_CheckedChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	uint64_t addr = DFStartAddr + ml->GetAddrByName("embark");
+	uint8_t state;
+	
+
+}
+
 DFTool::mainform::MemoryLayout::MemoryLayout(const char * Dest)
 {
 	struct stat fi;
