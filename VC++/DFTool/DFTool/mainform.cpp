@@ -233,14 +233,14 @@ void DFTool::mainform::InitDebugFunction()
 {
 	DebugFuncAddr.Clear();
 
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 2);//no pause
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 9);//no moods
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 119);//no drink
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 10);//no eat
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 1);//no sleep
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 120);//no berserk
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0);//fast mining
-	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 80235);//turbo speed
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x2);//no pause
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x9);//no moods
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x119);//no drink
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0xA);//no eat
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x1);//no sleep
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x120);//no berserk
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x0);//fast mining
+	DebugFuncAddr.Add(DFStartAddr + ml->GetAddrByName("debug") + 0x80235);//turbo speed
 
 	for (int i = 0; i < DebugFuncAddr.Count; i++) {
 		uint8_t state = 0;
@@ -854,7 +854,7 @@ System::Void DFTool::mainform::EmbEvrChk_CheckedChanged(System::Object ^ sender,
 {
 	uint64_t addr = DFStartAddr + ml->GetAddrByName("embark");
 	uint8_t state;
-	
+
 
 }
 

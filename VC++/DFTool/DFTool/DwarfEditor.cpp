@@ -109,20 +109,26 @@ void DFTool::DwarfEditor::LoadDwarfInForm()
 	//
 	uint64_t l1nameaddr;
 	uint32_t l1nameind, l2nameind;
+	String^ temp = String::Empty;
 	//получение индексов имен, первой части
 	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
 	l1nameaddr += SelectedDwarf * 8;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
 	l1nameaddr += 0x40;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameind, 4, NULL);
-	NameSecondP1Ind->SelectedIndex = l1nameind;
+	//if (l1nameind >= 0) NameSecondP1Ind->SelectedIndex = l1nameind;
+	ValNamesDict.TryGetValue(l1nameind, temp);
+	NameSecondP1Ind->SelectedItem = temp;
+
 	//второй
 	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
 	l1nameaddr += SelectedDwarf * 8;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);
 	l1nameaddr += 0x44;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l2nameind, 4, NULL);
-	NameSecondP2Ind->SelectedIndex = l2nameind;
+	//if (l2nameind >= 0) NameSecondP2Ind->SelectedIndex = l2nameind;
+	ValNamesDict.TryGetValue(l2nameind, temp);
+	NameSecondP2Ind->SelectedItem = temp;
 
 	uint64_t stat_addr;
 	ReadProcessMemory(hProcess, (void*)NameOffset, &stat_addr, 8, NULL);
@@ -304,17 +310,35 @@ System::Void DFTool::DwarfEditor::DwarfEditor_Load(System::Object ^ sender, Syst
 	uint64_t NameAddr = NULL;
 	char Name[10];
 
-	for (int i = 0; i < 0x3000; i++) {
-		ReadProcessMemory(hProcess, (void*)ColNameOffset, &NameAddr, 8, NULL);
-		ReadProcessMemory(hProcess, (void*)NameAddr, &NameAddr, 8, NULL);
-		NameAddr += 0x50;
-		ReadProcessMemory(hProcess, (void*)NameAddr, &NameAddr, 8, NULL);
-		NameAddr += 8 * i;
+	ReadProcessMemory(hProcess, (void*)ColNameOffset, &ColNameOffset, 8, NULL);
+	ReadProcessMemory(hProcess, (void*)ColNameOffset, &ColNameOffset, 8, NULL);
+	ColNameOffset += 0x50;
+	uint64_t ColNameOffsetEnd = ColNameOffset + 8;
+	ReadProcessMemory(hProcess, (void*)ColNameOffset, &ColNameOffset, 8, NULL);
+	ReadProcessMemory(hProcess, (void*)ColNameOffsetEnd, &ColNameOffsetEnd, 8, NULL);
+	size_t vSize = (ColNameOffsetEnd - ColNameOffset) / 8;
+	List<String^> NamesStrs;
+
+	for (size_t i = 0; i < vSize; i++) {
+		NameAddr = ColNameOffset + 8 * i;
 		ReadProcessMemory(hProcess, (void*)NameAddr, &NameAddr, 8, NULL);
 		ReadProcessMemory(hProcess, (void*)NameAddr, Name, 10, NULL);
 
-		NameSecondP1Ind->Items->Add(gcnew String(Name));
-		NameSecondP2Ind->Items->Add(gcnew String(Name));
+		try {
+			NamesValDict.Add(gcnew String(Name), i);
+			ValNamesDict.Add(i, gcnew String(Name));
+			NamesStrs.Add(gcnew String(Name));
+		}
+		catch (...) {
+
+		}
+	}
+
+	NamesStrs.Sort();
+
+	for (int i = 0; i < NamesStrs.Count; i++) {
+		NameSecondP1Ind->Items->Add(NamesStrs[i]);
+		NameSecondP2Ind->Items->Add(NamesStrs[i]);
 	}
 	//
 	if (EditMode == EMBARK) {
@@ -357,8 +381,13 @@ System::Void DFTool::DwarfEditor::ApplyNameBtn_Click(System::Object ^ sender, Sy
 		WriteProcessMemory(hProcess, (void*)(fnameaddr + 0x18), &mode, 1, NULL);
 	}
 	uint64_t l1nameaddr = 0;
-	int l1nameind = NameSecondP1Ind->SelectedIndex, l2nameind = NameSecondP2Ind->SelectedIndex;
-	//получение индексов имен, первой части
+	int l1nameind = 0, l2nameind = 0;
+	size_t tempInd = 0;
+	NamesValDict.TryGetValue((String^)NameSecondP1Ind->SelectedItem, tempInd);
+	l1nameind = tempInd;
+	NamesValDict.TryGetValue((String^)NameSecondP2Ind->SelectedItem, tempInd);
+	l2nameind = tempInd;
+	//индексы имен, первой части
 	ReadProcessMemory(hProcess, (void*)NameOffset, &l1nameaddr, 8, NULL);
 	l1nameaddr += SelectedDwarf * 8;
 	ReadProcessMemory(hProcess, (void*)l1nameaddr, &l1nameaddr, 8, NULL);

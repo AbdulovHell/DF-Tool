@@ -381,7 +381,7 @@ namespace DFTool {
 				 this->groupBox2->Size = System::Drawing::Size(304, 112);
 				 this->groupBox2->TabIndex = 2;
 				 this->groupBox2->TabStop = false;
-				 this->groupBox2->Text = L"Selected creature in \'v\' mode";
+				 this->groupBox2->Text = L"Selected creature via \'v\' key";
 				 // 
 				 // FortInvEditBtn
 				 // 

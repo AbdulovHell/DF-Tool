@@ -25,10 +25,10 @@ namespace DFTool {
 			InitializeComponent();
 			ChangeMode(_mode);
 		}
-		DwarfEditor(uint8_t _mode,int _dwarfnum)
+		DwarfEditor(uint8_t _mode, int _dwarfnum)
 		{
 			InitializeComponent();
-			ChangeMode(_mode,_dwarfnum);
+			ChangeMode(_mode, _dwarfnum);
 		}
 
 	protected:
@@ -177,6 +177,8 @@ namespace DFTool {
 		/// Обязательная переменная конструктора.
 		/// </summary>
 		uint8_t EditMode;
+		System::Collections::Generic::Dictionary<size_t, String^> ValNamesDict;
+		System::Collections::Generic::Dictionary<String^, size_t> NamesValDict;
 		List<CheckBox^> o_Boxes;
 		List<TextBox^> att_boxes;
 		List<Button^> att_5k_buttons;
